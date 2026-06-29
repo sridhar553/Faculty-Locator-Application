@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const prisma = require("../prismaClient");
+const supabase = require("../supabaseClient");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
@@ -25,8 +25,8 @@ router.post("/faculty/login", async (req, res) => {
     const { id, password } = req.body;
 
     try {
-        const faculty = await prisma.faculty.findUnique({ where: { id } });
-        if (!faculty) {
+        const { data: faculty, error } = await supabase.from('Faculty').select('*').eq('id', id).single();
+        if (error || !faculty) {
             return res.status(404).json({ message: "Faculty not found" });
         }
 

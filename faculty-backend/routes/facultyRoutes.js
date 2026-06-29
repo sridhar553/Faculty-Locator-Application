@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const prisma = require("../prismaClient");
+const supabase = require("../supabaseClient");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { auth, isAdmin, isFaculty } = require("../middleware/auth");
@@ -8,7 +8,8 @@ const { auth, isAdmin, isFaculty } = require("../middleware/auth");
 // GET all faculty (Student & Admin) - Public
 router.get("/", async (req, res) => {
   try {
-    const faculties = await prisma.faculty.findMany();
+    const { data: faculties, error } = await supabase.from('Faculty').select('*');
+    if (error) throw error;
     const mapped = faculties.map(f => ({
       id: f.id,
       name: f.name,
@@ -33,15 +34,15 @@ router.post("/", auth, isAdmin, async (req, res) => {
   try {
     const { id, password } = req.body;
 
-    const existingFaculty = await prisma.faculty.findUnique({ where: { id } });
+    const { data: existingFaculty, error: checkError } = await supabase.from('Faculty').select('id').eq('id', id).maybeSingle();
+    if (checkError) throw checkError;
     if (existingFaculty) {
       return res.status(400).json({ message: "Faculty with this ID already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.faculty.create({
-      data: {
+    const { error: createError } = await supabase.from('Faculty').insert([{
         id,
         name: req.body.name,
         department: req.body.department,
@@ -49,8 +50,8 @@ router.post("/", auth, isAdmin, async (req, res) => {
         timetableLocation: req.body.timetableLocation,
         password: hashedPassword,
         role: "faculty"
-      }
-    });
+    }]);
+    if (createError) throw createError;
     res.json({ message: "Faculty added successfully" });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -64,7 +65,8 @@ router.put("/status/:id", auth, isFaculty, async (req, res) => {
       return res.status(403).json({ message: "You can only update your own status" });
     }
 
-    const faculty = await prisma.faculty.findUnique({ where: { id: req.params.id } });
+    const { data: faculty, error: checkError } = await supabase.from('Faculty').select('*').eq('id', req.params.id).maybeSingle();
+    if (checkError) throw checkError;
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
 
     const oldStatus = {
@@ -74,18 +76,15 @@ router.put("/status/:id", auth, isFaculty, async (req, res) => {
     };
     const { availability, location, updatedAt } = req.body;
 
-    await prisma.faculty.update({
-      where: { id: req.params.id },
-      data: {
+    const { error: updateError } = await supabase.from('Faculty').update({
         liveStatusAvailability: availability,
         liveStatusLocation: location,
         liveStatusUpdatedAt: String(updatedAt)
-      }
-    });
+    }).eq('id', req.params.id);
+    if (updateError) throw updateError;
 
     // AUDIT LOG
-    await prisma.auditLog.create({
-      data: {
+    const { error: auditError } = await supabase.from('AuditLog').insert([{
         facultyId: faculty.id,
         facultyName: faculty.name,
         action: "STATUS_UPDATE",
@@ -93,8 +92,8 @@ router.put("/status/:id", auth, isFaculty, async (req, res) => {
           previous: oldStatus,
           current: { availability, location, updatedAt }
         }
-      }
-    });
+    }]);
+    if (auditError) console.error("Audit log error:", auditError);
 
     // SOCKET EMIT
     req.io.emit("statusUpdate", {
@@ -111,7 +110,8 @@ router.put("/status/:id", auth, isFaculty, async (req, res) => {
 // DELETE faculty (Admin only)
 router.delete("/:id", auth, isAdmin, async (req, res) => {
   try {
-    await prisma.faculty.delete({ where: { id: req.params.id } });
+    const { error: deleteError } = await supabase.from('Faculty').delete().eq('id', req.params.id);
+    if (deleteError) throw deleteError;
     res.json({ message: "Faculty deleted" });
   } catch (err) {
     res.status(400).json({ error: err.message });

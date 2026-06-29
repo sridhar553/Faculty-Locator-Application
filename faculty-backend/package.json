@@ -13,7 +13,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@supabase/supabase-js": "^2.108.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "@types/node": "^26.0.1",
-    "nodemon": "^3.1.11",
-    "prisma": "^6.19.3"
+    "nodemon": "^3.1.11"
   }
 }
