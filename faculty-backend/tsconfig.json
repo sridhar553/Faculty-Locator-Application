@@ -3,6 +3,7 @@
     "target": "es2022",
     "module": "commonjs",
     "types": ["node"],
-    "allowJs": true
+    "allowJs": true,
+    "noEmit": true
   }
 }
