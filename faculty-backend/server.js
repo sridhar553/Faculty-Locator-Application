@@ -1,5 +1,5 @@
 const express = require("express");
-const prisma = require("./prismaClient");
+
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -23,9 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-prisma.$connect()
-  .then(() => console.log("Prisma connected"))
-  .catch(err => console.error(err));
+
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/faculty", require("./routes/facultyRoutes"));
