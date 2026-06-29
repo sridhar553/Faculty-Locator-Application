@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "target": "es2022",
-    "module": "commonjs",
-    "types": ["node"],
-    "allowJs": true,
-    "noEmit": true
-  }
-}
