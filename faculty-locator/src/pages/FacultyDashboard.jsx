@@ -48,7 +48,7 @@ export default function FacultyDashboard() {
   }, [socket]);
 
   function updateStatus() {
-    fetch("/api/faculty/status/${user.id}", {
+    fetch(`/api/faculty/status/${user.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

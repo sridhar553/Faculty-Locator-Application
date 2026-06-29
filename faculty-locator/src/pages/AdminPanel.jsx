@@ -120,7 +120,7 @@ export default function AdminPanel() {
   function deleteFaculty(id) {
     if (!window.confirm("Are you sure you want to delete this faculty?")) return;
 
-    fetch("/api/faculty/${id}", {
+    fetch(`/api/faculty/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${user.token}`
