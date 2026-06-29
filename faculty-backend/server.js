@@ -58,7 +58,13 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-  });
+});
+
+// Serve frontend static files
+const path = require("path");
+app.use(express.static(path.join(__dirname, "../faculty-locator/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../faculty-locator/dist/index.html"));
 });
 
 const PORT = process.env.PORT || 5000;

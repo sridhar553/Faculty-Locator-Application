@@ -11,7 +11,7 @@ export default function StudentSearch() {
 
   useEffect(() => {
     // 1. Initial Fetch
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/faculty`)
+    fetch("/api/faculty")
       .then(res => res.json())
       .then(data => {
         setFaculty(data);
@@ -19,7 +19,7 @@ export default function StudentSearch() {
       })
       .catch(err => console.error(err));
 
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/config`)
+    fetch("/api/config")
       .then(res => res.json())
       .then(data => {
         const mode = data.find(c => c.key === "examMode")?.value;

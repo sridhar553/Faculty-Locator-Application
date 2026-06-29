@@ -42,7 +42,7 @@ export default function AdminPanel() {
   }, [socket]);
 
   function loadConfig() {
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/config`)
+    fetch("/api/config")
       .then(res => res.json())
       .then(data => {
         const mode = data.find(c => c.key === "examMode")?.value;
@@ -51,7 +51,7 @@ export default function AdminPanel() {
   }
 
   function loadLogs() {
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/config/logs`, {
+    fetch("/api/config/logs", {
       headers: { "Authorization": `Bearer ${user.token} ` }
     })
       .then(res => res.json())
@@ -60,7 +60,7 @@ export default function AdminPanel() {
 
   function toggleExamMode() {
     const newValue = !examMode;
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/config`, {
+    fetch("/api/config", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -78,7 +78,7 @@ export default function AdminPanel() {
 
   // GET faculty from backend
   function loadFaculty() {
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/faculty`)
+    fetch("/api/faculty")
       .then(res => res.json())
       .then(data => setFaculty(data))
       .catch(err => console.error(err));
@@ -95,7 +95,7 @@ export default function AdminPanel() {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/faculty`, {
+    fetch("/api/faculty", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -120,7 +120,7 @@ export default function AdminPanel() {
   function deleteFaculty(id) {
     if (!window.confirm("Are you sure you want to delete this faculty?")) return;
 
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/faculty/${id}`, {
+    fetch("/api/faculty/${id}", {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${user.token}`
