@@ -14,17 +14,24 @@ export default function StudentSearch() {
     fetch("/api/faculty")
       .then(res => res.json())
       .then(data => {
-        setFaculty(data);
-        setResults(data);
+        if (Array.isArray(data)) {
+          setFaculty(data);
+          setResults(data);
+        } else {
+          console.error("API returned error:", data);
+        }
       })
       .catch(err => console.error(err));
 
     fetch("/api/config")
       .then(res => res.json())
       .then(data => {
-        const mode = data.find(c => c.key === "examMode")?.value;
-        setExamMode(!!mode);
-      });
+        if (Array.isArray(data)) {
+          const mode = data.find(c => c.key === "examMode")?.value;
+          setExamMode(!!mode);
+        }
+      })
+      .catch(err => console.error(err));
   }, []);
 
   useEffect(() => {
@@ -94,11 +101,13 @@ export default function StudentSearch() {
       </div>
 
       {displayedFaculty.length === 0 && (
-        <p style={{ marginTop: "20px", color: "#777" }}>
-          No {examMode ? "active" : ""} faculty found
-        </p>
+        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", background: "var(--surface)", borderRadius: "12px", marginTop: "20px" }}>
+          <h3>No {examMode ? "active" : ""} faculty found</h3>
+          <p>Please check your connection or database setup.</p>
+        </div>
       )}
 
+      <div className="faculty-grid">
       {displayedFaculty.map(f => {
         const status = f.liveStatus?.availability || "Offline";
         const location = f.liveStatus?.location || f.timetableLocation;
@@ -129,6 +138,7 @@ export default function StudentSearch() {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

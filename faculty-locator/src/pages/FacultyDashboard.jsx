@@ -17,23 +17,28 @@ export default function FacultyDashboard() {
     fetch("/api/faculty")
       .then(res => res.json())
       .then(data => {
-        const f = data.find(x => x.id === user.id);
-        if (!f) {
-          alert("Faculty profile not found");
-          return;
+        if (Array.isArray(data)) {
+          const f = data.find(x => x.id === user.id);
+          if (!f) {
+            alert("Faculty profile not found");
+            return;
+          }
+          setFaculty(f);
+          setAvailability(f.liveStatus?.availability || "Available");
+          setLocation(f.liveStatus?.location || "");
         }
-        setFaculty(f);
-        setAvailability(f.liveStatus?.availability || "Available");
-        setLocation(f.liveStatus?.location || "");
       })
       .catch(err => console.error(err));
 
     fetch("/api/config")
       .then(res => res.json())
       .then(data => {
-        const mode = data.find(c => c.key === "examMode")?.value;
-        setExamMode(!!mode);
-      });
+        if (Array.isArray(data)) {
+          const mode = data.find(c => c.key === "examMode")?.value;
+          setExamMode(!!mode);
+        }
+      })
+      .catch(err => console.error(err));
   }, [user.id]);
 
   useEffect(() => {

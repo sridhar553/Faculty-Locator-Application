@@ -33,27 +33,37 @@ export default function FacultyLogin() {
 
   return (
     <div className="container">
-      <h1>Faculty Login</h1>
+      <div className="auth-container">
+        <h2>Faculty Login</h2>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <label>Faculty ID</label>
+            <input
+              placeholder="Enter your ID (e.g. F001)"
+              value={facultyId}
+              onChange={e => setFacultyId(e.target.value)}
+              autoComplete="off"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <input
-        placeholder="Enter Faculty ID"
-        value={facultyId}
-        onChange={e => setFacultyId(e.target.value)}
-        autoComplete="off"
-      />
-      <input
-        type="password"
-        placeholder="Enter Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        autoComplete="new-password"
-      />
-
-      <button className="primary" onClick={handleLogin}>
-        Login
-      </button>
+          <button type="submit" className="primary">
+            Login to Dashboard
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

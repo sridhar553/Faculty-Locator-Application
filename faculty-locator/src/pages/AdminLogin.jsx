@@ -32,21 +32,23 @@ export default function AdminLogin() {
 
   return (
     <div className="container">
-      <h1>Admin Login</h1>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <input
-        type="password"
-        placeholder="Admin Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        autoComplete="new-password"
-      />
-
-      <button className="primary" onClick={handleLogin}>
-        Login
-      </button>
+      <div className="auth-container">
+        <h2>Admin Login</h2>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <label>Admin Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Enter admin password"
+              required
+            />
+          </div>
+          <button type="submit">Access Admin Panel</button>
+        </form>
+      </div>
     </div>
   );
 }

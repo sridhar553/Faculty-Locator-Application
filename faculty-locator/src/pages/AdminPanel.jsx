@@ -45,17 +45,23 @@ export default function AdminPanel() {
     fetch("/api/config")
       .then(res => res.json())
       .then(data => {
-        const mode = data.find(c => c.key === "examMode")?.value;
-        setExamMode(!!mode);
-      });
+        if (Array.isArray(data)) {
+          const mode = data.find(c => c.key === "examMode")?.value;
+          setExamMode(!!mode);
+        }
+      })
+      .catch(err => console.error(err));
   }
 
   function loadLogs() {
     fetch("/api/config/logs", {
-      headers: { "Authorization": `Bearer ${user.token} ` }
+      headers: { "Authorization": `Bearer ${user.token}` }
     })
       .then(res => res.json())
-      .then(data => setLogs(data));
+      .then(data => {
+        if (Array.isArray(data)) setLogs(data);
+      })
+      .catch(err => console.error(err));
   }
 
   function toggleExamMode() {
@@ -80,7 +86,9 @@ export default function AdminPanel() {
   function loadFaculty() {
     fetch("/api/faculty")
       .then(res => res.json())
-      .then(data => setFaculty(data))
+      .then(data => {
+        if (Array.isArray(data)) setFaculty(data);
+      })
       .catch(err => console.error(err));
   }
 
@@ -196,7 +204,7 @@ export default function AdminPanel() {
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: "15px" }}>
+          <div className="faculty-grid" style={{ marginTop: "15px" }}>
             {faculty.map(f => (
               <div key={f._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px", borderBottom: "1px solid #f1f5f9" }}>
                 <div>
