@@ -14,7 +14,7 @@ export default function FacultyDashboard() {
   const socket = useSocket();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/faculty")
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/faculty`)
       .then(res => res.json())
       .then(data => {
         const f = data.find(x => x.id === user.id);
@@ -28,7 +28,7 @@ export default function FacultyDashboard() {
       })
       .catch(err => console.error(err));
 
-    fetch("http://localhost:5000/api/config")
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/config`)
       .then(res => res.json())
       .then(data => {
         const mode = data.find(c => c.key === "examMode")?.value;
@@ -48,7 +48,7 @@ export default function FacultyDashboard() {
   }, [socket]);
 
   function updateStatus() {
-    fetch(`http://localhost:5000/api/faculty/status/${user.id}`, {
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/faculty/status/${user.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
