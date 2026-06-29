@@ -1,5 +1,5 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const prisma = require("./prismaClient");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -23,9 +23,8 @@ app.use((req, res, next) => {
   next();
 });
 
-mongoose
-  .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/faculty_locator")
-  .then(() => console.log("MongoDB connected"))
+prisma.$connect()
+  .then(() => console.log("Prisma connected"))
   .catch(err => console.error(err));
 
 app.use("/api/auth", require("./routes/authRoutes"));
