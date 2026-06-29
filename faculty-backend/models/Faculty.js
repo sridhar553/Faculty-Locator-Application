@@ -4,6 +4,7 @@ const FacultySchema = new mongoose.Schema({
   id: { type: String, unique: true },
   name: String,
   department: String,
+  subject: String,
   timetableLocation: String,
 
   // AUTH FIELDS

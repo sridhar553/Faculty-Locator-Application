@@ -8,7 +8,7 @@ function auth(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, "SECRET_KEY");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
     req.user = decoded;
     next();
   } catch (err) {
@@ -16,13 +16,28 @@ function auth(req, res, next) {
   }
 }
 
-function authorizeRole(role) {
-  return (req, res, next) => {
-    if (req.user.role !== role) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+function isAdmin(req, res, next) {
+  if (req.user && req.user.role === "admin") {
     next();
-  };
+  } else {
+    res.status(403).json({ message: "Forbidden: Admin access required" });
+  }
 }
 
-module.exports = { auth, authorizeRole };
+function isFaculty(req, res, next) {
+  if (req.user && req.user.role === "faculty") {
+    next();
+  } else {
+    res.status(403).json({ message: "Forbidden: Faculty access required" });
+  }
+}
+
+function isStudent(req, res, next) {
+  if (req.user && req.user.role === "student") {
+    next();
+  } else {
+    res.status(403).json({ message: "Forbidden: Student access required" });
+  }
+}
+
+module.exports = { auth, isAdmin, isFaculty, isStudent };
