@@ -8,6 +8,7 @@ import FacultyLogin from "./pages/FacultyLogin";
 import FacultyDashboard from "./pages/FacultyDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import AdminLogin from "./pages/AdminLogin";
+import FacultySetup from "./pages/FacultySetup";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<StudentSearch />} />
             <Route path="/login" element={<FacultyLogin />} />
+            <Route path="/faculty-setup" element={<FacultySetup />} />
             <Route
               path="/dashboard"
               element={

@@ -106,4 +106,56 @@ router.post("/faculty/login", async (req, res) => {
     }
 });
 
+// Faculty Setup (via Email Link)
+router.post("/faculty/setup", async (req, res) => {
+    const { token, password } = req.body;
+    
+    if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+    }
+
+    try {
+        const { data: faculty, error } = await supabase.from('Faculty')
+            .select('*')
+            .eq('setupToken', token)
+            .single();
+
+        if (error || !faculty) {
+            return res.status(400).json({ message: "Invalid or expired setup link" });
+        }
+
+        // Check if token expired
+        if (new Date(faculty.tokenExpiry) < new Date()) {
+            return res.status(400).json({ message: "Setup link has expired" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const { error: updateError } = await supabase.from('Faculty')
+            .update({ 
+                password: hashedPassword,
+                setupToken: null,
+                tokenExpiry: null
+            })
+            .eq('id', faculty.id);
+
+        if (updateError) throw updateError;
+
+        const jwtToken = jwt.sign(
+            { id: faculty.id, role: "faculty" },
+            process.env.JWT_SECRET || "SECRET_KEY",
+            { expiresIn: "24h" }
+        );
+
+        res.json({
+            token: jwtToken,
+            role: "faculty",
+            name: faculty.name,
+            id: faculty.id
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

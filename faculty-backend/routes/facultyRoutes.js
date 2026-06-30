@@ -32,7 +32,11 @@ router.get("/", async (req, res) => {
 // ADD faculty (Admin only)
 router.post("/", auth, isAdmin, async (req, res) => {
   try {
-    const { id, password } = req.body;
+    const { id, name, email, department, subject, timetableLocation } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const { data: existingFaculty, error: checkError } = await supabase.from('Faculty').select('id').eq('id', id).maybeSingle();
     if (checkError) throw checkError;
@@ -40,19 +44,48 @@ router.post("/", auth, isAdmin, async (req, res) => {
       return res.status(400).json({ message: "Faculty with this ID already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Generate secure token
+    const crypto = require("crypto");
+    const setupToken = crypto.randomBytes(32).toString("hex");
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
 
     const { error: createError } = await supabase.from('Faculty').insert([{
         id,
-        name: req.body.name,
-        department: req.body.department,
-        subject: req.body.subject,
-        timetableLocation: req.body.timetableLocation,
-        password: hashedPassword,
-        role: "faculty"
+        name,
+        email,
+        department,
+        subject,
+        timetableLocation,
+        password: null,
+        role: "faculty",
+        setupToken,
+        tokenExpiry
     }]);
     if (createError) throw createError;
-    res.json({ message: "Faculty added successfully" });
+
+    // Send email via Resend
+    if (process.env.RESEND_API_KEY) {
+      const { Resend } = require("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const setupUrl = `https://faculty-locator-application.onrender.com/faculty-setup?token=${setupToken}`;
+
+      await resend.emails.send({
+        from: "Admin <onboarding@resend.dev>",
+        to: email,
+        subject: "Welcome! Set up your Faculty Account",
+        html: `
+          <h2>Welcome to the Faculty Locator, ${name}!</h2>
+          <p>An administrator has created an account for you.</p>
+          <p>Please click the link below to set your password and access your dashboard:</p>
+          <a href="${setupUrl}" style="padding: 10px 20px; background: #6366f1; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Set My Password</a>
+          <p style="margin-top: 20px; font-size: 0.8em; color: #666;">This link expires in 24 hours.</p>
+        `
+      });
+    } else {
+       console.warn("RESEND_API_KEY is missing. Email not sent. Token is:", setupToken);
+    }
+
+    res.json({ message: "Faculty added and invitation sent successfully" });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
