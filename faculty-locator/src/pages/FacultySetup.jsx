@@ -54,7 +54,7 @@ export default function FacultySetup() {
         setLoading(false);
         if (res.ok) {
           toast.success("Password set successfully! Please log in.");
-          navigate("/login");
+          window.location.href = "/login";
         } else {
           toast.error(data.message || data.error || "Setup failed");
         }
