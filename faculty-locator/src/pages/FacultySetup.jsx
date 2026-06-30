@@ -96,7 +96,7 @@ export default function FacultySetup() {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0, display: "flex" }}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0, display: "flex", width: "auto", margin: 0, boxShadow: "none" }}
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
@@ -127,7 +127,7 @@ export default function FacultySetup() {
               <button 
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0, display: "flex" }}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0, display: "flex", width: "auto", margin: 0, boxShadow: "none" }}
               >
                 {showConfirmPassword ? "🙈" : "👁️"}
               </button>
