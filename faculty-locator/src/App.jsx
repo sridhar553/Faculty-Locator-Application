@@ -49,25 +49,20 @@ function DynamicNav() {
   const { user, logout } = useAuth();
   
   return (
-    <nav className="nav" style={{ justifyContent: "space-between", alignItems: "center" }}>
+    <nav className="nav" style={{ justifyContent: "space-between", alignItems: "center", padding: "12px 32px" }}>
       <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-        <Link to="/" style={{ fontWeight: "bold", color: "#0f172a", fontSize: "1.2rem" }}>FacultyLocator</Link>
+        <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+          <img src="/logo.png" alt="Faculty Locator Logo" style={{ height: "45px" }} />
+        </Link>
         
         {/* Dynamic Links */}
-        {!user && <Link to="/">Search</Link>}
         
         {user?.role === "faculty" && (
-          <>
-            <Link to="/">Search</Link>
-            <Link to="/dashboard" className="active">My Dashboard</Link>
-          </>
+          <Link to="/dashboard" className="active">My Dashboard</Link>
         )}
         
         {user?.role === "admin" && (
-          <>
-            <Link to="/">Search</Link>
-            <Link to="/admin" className="active">Admin Panel</Link>
-          </>
+          <Link to="/admin" className="active">Admin Panel</Link>
         )}
       </div>
 

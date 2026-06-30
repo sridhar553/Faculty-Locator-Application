@@ -3,20 +3,18 @@ import { createContext, useContext, useState, useEffect } from "react";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
+    const [user, setUser] = useState(() => {
         const token = sessionStorage.getItem("token");
         const role = sessionStorage.getItem("role");
         const id = sessionStorage.getItem("userId");
         const name = sessionStorage.getItem("userName");
 
         if (token && role) {
-            setUser({ token, role, id, name });
+            return { token, role, id, name };
         }
-        setLoading(false);
-    }, []);
+        return null;
+    });
+    const [loading, setLoading] = useState(false);
 
     const login = (userData) => {
         sessionStorage.setItem("token", userData.token);
