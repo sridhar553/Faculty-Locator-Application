@@ -1,18 +1,15 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
 export default function FacultySetup() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [successData, setSuccessData] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -38,9 +35,8 @@ export default function FacultySetup() {
         const data = await res.json();
         setLoading(false);
         if (res.ok) {
-          login(data);
-          setSuccessData(data.user);
-          toast.success("Password set successfully!");
+          toast.success("Password set successfully! Please log in.");
+          navigate("/login");
         } else {
           toast.error(data.message || data.error || "Setup failed");
         }
@@ -53,24 +49,6 @@ export default function FacultySetup() {
   }
 
   if (!token) return null;
-
-  if (successData) {
-    return (
-      <div className="container">
-        <div className="auth-container premium-card" style={{ maxWidth: "450px", margin: "100px auto", textAlign: "center" }}>
-          <h2 style={{ marginBottom: "10px", color: "#166534" }}>Setup Complete! 🎉</h2>
-          <p style={{ color: "#475569", marginBottom: "20px" }}>Your account is ready.</p>
-          <div style={{ background: "#f8fafc", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "20px" }}>
-            <p style={{ fontSize: "0.9rem", color: "#64748b", margin: 0, textTransform: "uppercase" }}>Your Login ID is</p>
-            <p style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#0f172a", margin: "5px 0 0 0", fontFamily: "monospace" }}>{successData.id}</p>
-          </div>
-          <button onClick={() => navigate("/dashboard")} className="primary-btn submit-btn" style={{ width: "100%" }}>
-            Go to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container">

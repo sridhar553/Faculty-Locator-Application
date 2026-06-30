@@ -88,15 +88,23 @@ router.post("/", auth, isAdmin, async (req, res) => {
         to: email,
         subject: "Welcome! Set up your Faculty Account",
         html: `
-          <h2>Welcome to the Faculty Locator, ${name}!</h2>
-          <p>An administrator has created an account for you.</p>
-          <p style="padding: 10px; background: #f1f5f9; border-radius: 5px;">
-            <strong>Your Auto-Generated Faculty ID is:</strong> <span style="font-family: monospace; font-size: 1.2em;">${id}</span>
-          </p>
-          <p>You will need this ID to log in.</p>
-          <p>Please click the link below to set your password and access your dashboard:</p>
-          <a href="${setupUrl}" style="padding: 10px 20px; background: #6366f1; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Set My Password</a>
-          <p style="margin-top: 20px; font-size: 0.8em; color: #666;">This link expires in 24 hours.</p>
+          <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; color: #333333; text-align: center;">
+            <div style="background-color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+              <h2 style="color: #0f172a; margin-top: 0; font-size: 24px;">Welcome, ${name}!</h2>
+              <p style="color: #475569; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">An administrator has created a Faculty Locator account for you.</p>
+              
+              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 2px dashed #cbd5e1; display: inline-block; margin-bottom: 24px;">
+                <p style="font-size: 14px; color: #64748b; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">Your Auto-Generated Faculty ID</p>
+                <div style="font-family: monospace; font-size: 28px; font-weight: bold; color: #4338ca; letter-spacing: 2px;">${id}</div>
+              </div>
+              
+              <p style="color: #475569; font-size: 15px; margin-bottom: 30px;">You will need this ID to log in to the portal.</p>
+              
+              <a href="${setupUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">Set My Password</a>
+            </div>
+            
+            <p style="font-size: 13px; color: #94a3b8; margin: 0;">This link expires in 24 hours.</p>
+          </div>
         `
       });
     } else {
