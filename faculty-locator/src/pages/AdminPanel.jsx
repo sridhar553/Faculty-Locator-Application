@@ -154,7 +154,6 @@ export default function AdminPanel() {
     if (!window.confirm("Are you sure you want to cancel?")) return;
     setLocationForm({ block: "", floor: "", cabinNo: "" });
     setShowLocationForm(false);
-    toast("Canceled", { icon: "ℹ️" });
   }
 
   function deleteLocation(id) {
@@ -308,32 +307,28 @@ export default function AdminPanel() {
             
             {showLocationForm && (
               <div className="modal-overlay">
-                <div className="modal-content" style={{ maxWidth: '600px', padding: '40px' }}>
+                <div className="modal-content" style={{ maxWidth: '500px', padding: '40px' }}>
                   <h2 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', color: '#0f172a' }}>Add New Location</h2>
                   <form onSubmit={addLocation} className="modern-form">
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>BLOCK</label>
-                        <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
-                      </div>
-                      <div className="form-group">
-                        <label>FLOOR</label>
-                        <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
-                      </div>
+                    <div className="form-group">
+                      <label>BLOCK</label>
+                      <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
                     </div>
-                    <div className="form-row" style={{ alignItems: 'flex-end' }}>
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label>CABIN NO</label>
-                        <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
-                      </div>
-                      <div style={{ display: 'flex', gap: '12px', height: '46px' }}>
-                         <button type="submit" className="primary-btn submit-btn" style={{ flex: 1, padding: '0 24px' }}>
-                            Save
-                         </button>
-                         <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, padding: '0 24px', background: '#f1f5f9', color: '#475569' }}>
-                            Cancel
-                         </button>
-                      </div>
+                    <div className="form-group">
+                      <label>FLOOR</label>
+                      <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>CABIN NO</label>
+                      <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
+                       <button type="submit" className="primary-btn submit-btn" style={{ flex: 1, padding: '14px 24px' }}>
+                          Save
+                       </button>
+                       <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, padding: '14px 24px', background: '#f1f5f9', color: '#475569' }}>
+                          Cancel
+                       </button>
                     </div>
                   </form>
                 </div>
