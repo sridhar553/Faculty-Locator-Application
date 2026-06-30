@@ -9,7 +9,8 @@ export default function FacultyLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  async function handleLogin() {
+  async function handleLogin(e) {
+    e.preventDefault();
     try {
       const res = await fetch("/api/auth/faculty/login", {
         method: "POST",

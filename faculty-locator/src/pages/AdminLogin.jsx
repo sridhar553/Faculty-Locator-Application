@@ -8,7 +8,8 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  async function handleLogin() {
+  async function handleLogin(e) {
+    e.preventDefault();
     try {
       const res = await fetch("/api/auth/admin/login", {
         method: "POST",
