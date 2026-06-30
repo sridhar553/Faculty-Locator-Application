@@ -77,23 +77,30 @@ export default function FacultySetup() {
         </p>
 
         <form onSubmit={handleSetup} className="modern-form">
-          <div className="form-group" style={{ position: "relative" }}>
-            <label>New Password</label>
-            <input 
-              type={showPassword ? "text" : "password"} 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              placeholder="Enter a secure password" 
-              required 
-              style={{ paddingRight: "40px" }}
-            />
-            <button 
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{ position: "absolute", right: "12px", top: "36px", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0 }}
-            >
-              {showPassword ? "🙈" : "👁️"}
-            </button>
+          <div className="form-group">
+            <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+              NEW PASSWORD 
+              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "normal", textTransform: "none", marginLeft: "6px" }}>
+                (for strong password use symbols, capitals and numbers)
+              </span>
+            </label>
+            <div style={{ position: "relative", width: "100%" }}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="Enter a secure password" 
+                required 
+                style={{ width: "100%", paddingRight: "40px", boxSizing: "border-box" }}
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0, display: "flex" }}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
             {password && (
               <div style={{ marginTop: "8px", fontSize: "0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                  <div style={{ display: "flex", gap: "4px", flex: 1, marginRight: "10px" }}>
@@ -105,24 +112,28 @@ export default function FacultySetup() {
               </div>
             )}
           </div>
-          <div className="form-group" style={{ position: "relative" }}>
-            <label>Confirm Password</label>
-            <input 
-              type={showConfirmPassword ? "text" : "password"} 
-              value={confirmPassword} 
-              onChange={e => setConfirmPassword(e.target.value)} 
-              placeholder="Re-type your password" 
-              required 
-              style={{ paddingRight: "40px" }}
-            />
-            <button 
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              style={{ position: "absolute", right: "12px", top: "36px", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0 }}
-            >
-              {showConfirmPassword ? "🙈" : "👁️"}
-            </button>
+          
+          <div className="form-group">
+            <label>CONFIRM PASSWORD</label>
+            <div style={{ position: "relative", width: "100%" }}>
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                value={confirmPassword} 
+                onChange={e => setConfirmPassword(e.target.value)} 
+                placeholder="Re-type your password" 
+                required 
+                style={{ width: "100%", paddingRight: "40px", boxSizing: "border-box" }}
+              />
+              <button 
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0, display: "flex" }}
+              >
+                {showConfirmPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
+          
           <button type="submit" className="primary-btn submit-btn" disabled={loading} style={{ width: "100%", marginTop: "10px" }}>
             {loading ? "Saving..." : "Set Password"}
           </button>
