@@ -304,33 +304,36 @@ export default function AdminPanel() {
             </div>
             
             {showLocationForm && (
-              <div className="premium-card">
-                <form onSubmit={addLocation} className="modern-form">
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Block</label>
-                      <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <h2 style={{ margin: '0 0 20px 0' }}>Add New Location</h2>
+                  <form onSubmit={addLocation} className="modern-form">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Block</label>
+                        <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
+                      </div>
+                      <div className="form-group">
+                        <label>Floor</label>
+                        <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label>Floor</label>
-                      <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Cabin No</label>
+                        <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
+                      </div>
+                      <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+                         <button type="submit" className="primary-btn submit-btn" style={{ flex: 1 }}>
+                            Save
+                         </button>
+                         <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, background: '#f1f5f9', color: '#475569' }}>
+                            Cancel
+                         </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Cabin No</label>
-                      <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
-                    </div>
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
-                       <button type="submit" className="primary-btn submit-btn" style={{ flex: 1 }}>
-                          Save
-                       </button>
-                       <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, background: '#f1f5f9', color: '#475569' }}>
-                          Cancel
-                       </button>
-                    </div>
-                  </div>
-                </form>
+                  </form>
+                </div>
               </div>
             )}
 

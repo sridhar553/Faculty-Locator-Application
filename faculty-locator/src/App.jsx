@@ -14,7 +14,7 @@ export default function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <Toaster position="top-right" />
+        <Toaster position="top-center" />
         <BrowserRouter>
           <nav className="nav">
             <Link to="/">Student</Link>
