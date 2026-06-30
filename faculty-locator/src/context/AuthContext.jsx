@@ -7,10 +7,10 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        const role = localStorage.getItem("role");
-        const id = localStorage.getItem("userId");
-        const name = localStorage.getItem("userName");
+        const token = sessionStorage.getItem("token");
+        const role = sessionStorage.getItem("role");
+        const id = sessionStorage.getItem("userId");
+        const name = sessionStorage.getItem("userName");
 
         if (token && role) {
             setUser({ token, role, id, name });
@@ -19,16 +19,16 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (userData) => {
-        localStorage.setItem("token", userData.token);
-        localStorage.setItem("role", userData.role);
-        if (userData.id) localStorage.setItem("userId", userData.id);
-        if (userData.name) localStorage.setItem("userName", userData.name);
+        sessionStorage.setItem("token", userData.token);
+        sessionStorage.setItem("role", userData.role);
+        if (userData.id) sessionStorage.setItem("userId", userData.id);
+        if (userData.name) sessionStorage.setItem("userName", userData.name);
 
         setUser(userData);
     };
 
     const logout = () => {
-        localStorage.clear();
+        sessionStorage.clear();
         setUser(null);
         window.location.href = "/";
     };
