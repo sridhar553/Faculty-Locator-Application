@@ -12,6 +12,7 @@ export default function FacultySetup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -38,8 +39,8 @@ export default function FacultySetup() {
         setLoading(false);
         if (res.ok) {
           login(data);
-          toast.success("Password set successfully! Welcome to your dashboard.");
-          navigate("/dashboard");
+          setSuccessData(data.user);
+          toast.success("Password set successfully!");
         } else {
           toast.error(data.message || data.error || "Setup failed");
         }
@@ -52,6 +53,24 @@ export default function FacultySetup() {
   }
 
   if (!token) return null;
+
+  if (successData) {
+    return (
+      <div className="container">
+        <div className="auth-container premium-card" style={{ maxWidth: "450px", margin: "100px auto", textAlign: "center" }}>
+          <h2 style={{ marginBottom: "10px", color: "#166534" }}>Setup Complete! 🎉</h2>
+          <p style={{ color: "#475569", marginBottom: "20px" }}>Your account is ready.</p>
+          <div style={{ background: "#f8fafc", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "20px" }}>
+            <p style={{ fontSize: "0.9rem", color: "#64748b", margin: 0, textTransform: "uppercase" }}>Your Login ID is</p>
+            <p style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#0f172a", margin: "5px 0 0 0", fontFamily: "monospace" }}>{successData.id}</p>
+          </div>
+          <button onClick={() => navigate("/dashboard")} className="primary-btn submit-btn" style={{ width: "100%" }}>
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -83,7 +102,7 @@ export default function FacultySetup() {
             />
           </div>
           <button type="submit" className="primary-btn submit-btn" disabled={loading} style={{ width: "100%" }}>
-            {loading ? "Saving..." : "Set Password & Login"}
+            {loading ? "Saving..." : "Set Password"}
           </button>
         </form>
       </div>

@@ -11,11 +11,11 @@ export default function AdminPanel() {
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [faculty, setFaculty] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [examMode, setExamMode] = useState(false);
   const [logs, setLogs] = useState([]);
 
   const [form, setForm] = useState({
-    id: "",
     email: "",
     name: "",
     department: "",
@@ -23,10 +23,17 @@ export default function AdminPanel() {
     timetableLocation: ""
   });
 
+  const [locationForm, setLocationForm] = useState({
+    block: "",
+    floor: "",
+    cabinNo: ""
+  });
+
   useEffect(() => {
     loadFaculty();
     loadConfig();
     loadLogs();
+    loadLocations();
   }, []);
 
   useEffect(() => {
@@ -64,6 +71,15 @@ export default function AdminPanel() {
       .catch(err => console.error(err));
   }
 
+  function loadLocations() {
+    fetch("/api/locations")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setLocations(data);
+      })
+      .catch(err => console.error(err));
+  }
+
   function toggleExamMode() {
     const newValue = !examMode;
     fetch("/api/config", {
@@ -95,10 +111,63 @@ export default function AdminPanel() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  function handleLocationChange(e) {
+    setLocationForm({ ...locationForm, [e.target.name]: e.target.value });
+  }
+
+  function addLocation(e) {
+    e.preventDefault();
+    if (!locationForm.block || !locationForm.floor || !locationForm.cabinNo) {
+      toast.error("Block, Floor, and Cabin No are required");
+      return;
+    }
+
+    fetch("/api/locations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${user.token}`
+      },
+      body: JSON.stringify(locationForm)
+    })
+      .then(async res => {
+        const data = await res.json();
+        if (res.ok) {
+          setLocationForm({ block: "", floor: "", cabinNo: "" });
+          loadLocations();
+          toast.success("Location added!");
+        } else {
+          toast.error(data.message || data.error || "Error adding location");
+        }
+      })
+      .catch(err => {
+        toast.error("Network error");
+        console.error(err);
+      });
+  }
+
+  function deleteLocation(id) {
+    if (!window.confirm("Are you sure you want to delete this location?")) return;
+    fetch(`/api/locations/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${user.token}` }
+    })
+      .then(async res => {
+        if (res.ok) {
+          loadLocations();
+          toast.success("Location removed");
+        } else {
+          const data = await res.json();
+          toast.error(data.message || "Error deleting location");
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
   function addFaculty(e) {
     e.preventDefault();
-    if (!form.id || !form.name || !form.email) {
-      toast.error("Faculty ID, Name, and Email are required");
+    if (!form.name || !form.email) {
+      toast.error("Name and Email are required");
       return;
     }
 
@@ -115,7 +184,7 @@ export default function AdminPanel() {
       .then(async res => {
         const data = await res.json();
         if (res.ok) {
-          setForm({ id: "", email: "", name: "", department: "", subject: "", timetableLocation: "" });
+          setForm({ email: "", name: "", department: "", subject: "", timetableLocation: "" });
           loadFaculty();
           toast.success("Faculty added! Invitation email sent.", { id: toastId });
           setActiveTab("directory");
@@ -166,6 +235,9 @@ export default function AdminPanel() {
           <button className={activeTab === "dashboard" ? "active" : ""} onClick={() => setActiveTab("dashboard")}>
             <span className="icon">📊</span> Dashboard
           </button>
+          <button className={activeTab === "locations" ? "active" : ""} onClick={() => setActiveTab("locations")}>
+            <span className="icon">📍</span> Campus Locations
+          </button>
           <button className={activeTab === "add-faculty" ? "active" : ""} onClick={() => setActiveTab("add-faculty")}>
             <span className="icon">✉️</span> Invite Faculty
           </button>
@@ -209,27 +281,84 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {activeTab === "locations" && (
+          <div className="tab-section fade-in">
+            <h1>Campus Locations</h1>
+            <p className="subtitle">Manage all available blocks, floors, and cabins</p>
+            
+            <div className="premium-card">
+              <form onSubmit={addLocation} className="modern-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Block</label>
+                    <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Floor</label>
+                    <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Cabin No</label>
+                    <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
+                  </div>
+                  <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                     <button type="submit" className="primary-btn submit-btn" style={{ width: '100%' }}>
+                        Add Location
+                     </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="premium-card table-container">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th>Block</th>
+                    <th>Floor</th>
+                    <th>Cabin No</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {locations.length === 0 ? (
+                    <tr><td colSpan="4" className="empty-state">No locations found</td></tr>
+                  ) : (
+                    locations.map(loc => (
+                      <tr key={loc.id}>
+                        <td className="font-medium">{loc.block}</td>
+                        <td>{loc.floor}</td>
+                        <td>{loc.cabinNo}</td>
+                        <td>
+                          <button onClick={() => deleteLocation(loc.id)} className="action-btn delete">Remove</button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {activeTab === "add-faculty" && (
           <div className="tab-section fade-in">
             <h1>Invite New Faculty</h1>
-            <p className="subtitle">An email invitation will be sent for them to set their password.</p>
+            <p className="subtitle">An auto-generated ID will be sent via email for them to set their password.</p>
             
             <div className="premium-card">
               <form onSubmit={addFaculty} className="modern-form">
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Faculty ID *</label>
-                    <input name="id" placeholder="e.g. FAC001" value={form.id} onChange={handleChange} required />
+                    <label>Full Name *</label>
+                    <input name="name" placeholder="Dr. John Doe" value={form.name} onChange={handleChange} required />
                   </div>
                   <div className="form-group">
                     <label>Email Address *</label>
                     <input name="email" type="email" placeholder="faculty@university.edu" value={form.email} onChange={handleChange} required />
                   </div>
-                </div>
-                
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input name="name" placeholder="Dr. John Doe" value={form.name} onChange={handleChange} required />
                 </div>
 
                 <div className="form-row">
@@ -244,11 +373,18 @@ export default function AdminPanel() {
                 </div>
 
                 <div className="form-group">
-                  <label>Default Location</label>
-                  <input name="timetableLocation" placeholder="e.g. Room 402, Block B" value={form.timetableLocation} onChange={handleChange} />
+                  <label>Default Location 📍</label>
+                  <select name="timetableLocation" value={form.timetableLocation} onChange={handleChange} required style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1rem' }}>
+                    <option value="" disabled>Select a location...</option>
+                    {locations.map(loc => (
+                      <option key={loc.id} value={`${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}`}>
+                        {loc.block} - {loc.floor} - Cabin {loc.cabinNo}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <button type="submit" className="primary-btn submit-btn">
+                <button type="submit" className="primary-btn submit-btn" style={{ marginTop: '10px' }}>
                   Send Invitation Email
                 </button>
               </form>

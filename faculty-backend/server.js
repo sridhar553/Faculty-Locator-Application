@@ -28,6 +28,7 @@ app.use((req, res, next) => {
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/faculty", require("./routes/facultyRoutes"));
 app.use("/api/config", require("./routes/configRoutes"));
+app.use("/api/locations", require("./routes/locationRoutes"));
 
 const jwt = require("jsonwebtoken");
 

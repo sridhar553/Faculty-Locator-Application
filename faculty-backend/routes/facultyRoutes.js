@@ -32,16 +32,30 @@ router.get("/", async (req, res) => {
 // ADD faculty (Admin only)
 router.post("/", auth, isAdmin, async (req, res) => {
   try {
-    const { id, name, email, department, subject, timetableLocation } = req.body;
+    const { name, email, department, subject, timetableLocation } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
+    // Auto-generate ID based on department
+    let prefix = "FAC";
+    if (department && department.trim() !== "") {
+      const words = department.trim().split(/[\s&]+/);
+      if (words.length > 1) {
+        prefix = words.map(w => w[0].toUpperCase()).join("");
+      } else {
+        prefix = department.substring(0, 3).toUpperCase();
+      }
+    }
+    const randomNum = Math.floor(10000 + Math.random() * 90000); // 5 digit
+    const id = `${prefix}-${randomNum}`;
+
     const { data: existingFaculty, error: checkError } = await supabase.from('Faculty').select('id').eq('id', id).maybeSingle();
     if (checkError) throw checkError;
     if (existingFaculty) {
-      return res.status(400).json({ message: "Faculty with this ID already exists" });
+      // In the extremely rare case of collision, just fail and they can retry
+      return res.status(400).json({ message: "ID collision occurred. Please try again." });
     }
 
     // Generate secure token
@@ -76,6 +90,10 @@ router.post("/", auth, isAdmin, async (req, res) => {
         html: `
           <h2>Welcome to the Faculty Locator, ${name}!</h2>
           <p>An administrator has created an account for you.</p>
+          <p style="padding: 10px; background: #f1f5f9; border-radius: 5px;">
+            <strong>Your Auto-Generated Faculty ID is:</strong> <span style="font-family: monospace; font-size: 1.2em;">${id}</span>
+          </p>
+          <p>You will need this ID to log in.</p>
           <p>Please click the link below to set your password and access your dashboard:</p>
           <a href="${setupUrl}" style="padding: 10px 20px; background: #6366f1; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Set My Password</a>
           <p style="margin-top: 20px; font-size: 0.8em; color: #666;">This link expires in 24 hours.</p>
