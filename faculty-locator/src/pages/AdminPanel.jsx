@@ -122,6 +122,8 @@ export default function AdminPanel() {
       toast.error("Block, Floor, and Cabin No are required");
       return;
     }
+    
+    if (!window.confirm("Are you sure you want to save this location?")) return;
 
     fetch("/api/locations", {
       method: "POST",
@@ -137,7 +139,7 @@ export default function AdminPanel() {
           setLocationForm({ block: "", floor: "", cabinNo: "" });
           setShowLocationForm(false);
           loadLocations();
-          toast.success("Location added!");
+          toast.success("Location saved!");
         } else {
           toast.error(data.message || data.error || "Error adding location");
         }
@@ -149,6 +151,7 @@ export default function AdminPanel() {
   }
 
   function cancelLocation() {
+    if (!window.confirm("Are you sure you want to cancel?")) return;
     setLocationForm({ block: "", floor: "", cabinNo: "" });
     setShowLocationForm(false);
     toast("Canceled", { icon: "ℹ️" });
@@ -305,29 +308,29 @@ export default function AdminPanel() {
             
             {showLocationForm && (
               <div className="modal-overlay">
-                <div className="modal-content">
-                  <h2 style={{ margin: '0 0 20px 0' }}>Add New Location</h2>
+                <div className="modal-content" style={{ maxWidth: '600px', padding: '40px' }}>
+                  <h2 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', color: '#0f172a' }}>Add New Location</h2>
                   <form onSubmit={addLocation} className="modern-form">
                     <div className="form-row">
                       <div className="form-group">
-                        <label>Block</label>
+                        <label>BLOCK</label>
                         <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
                       </div>
                       <div className="form-group">
-                        <label>Floor</label>
+                        <label>FLOOR</label>
                         <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
                       </div>
                     </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Cabin No</label>
+                    <div className="form-row" style={{ alignItems: 'flex-end' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label>CABIN NO</label>
                         <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
                       </div>
-                      <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
-                         <button type="submit" className="primary-btn submit-btn" style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', gap: '12px', height: '46px' }}>
+                         <button type="submit" className="primary-btn submit-btn" style={{ flex: 1, padding: '0 24px' }}>
                             Save
                          </button>
-                         <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, background: '#f1f5f9', color: '#475569' }}>
+                         <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, padding: '0 24px', background: '#f1f5f9', color: '#475569' }}>
                             Cancel
                          </button>
                       </div>
