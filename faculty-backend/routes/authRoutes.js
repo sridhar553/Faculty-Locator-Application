@@ -4,20 +4,74 @@ const supabase = require("../supabaseClient");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-// Admin Login
-router.post("/admin/login", async (req, res) => {
-    const { password } = req.body;
+// Admin Status Check
+router.get("/admin/status", async (req, res) => {
+    try {
+        const { data: config, error } = await supabase.from('SystemConfig').select('*').eq('key', 'adminPassword').single();
+        if (error && error.code !== 'PGRST116') {
+            return res.status(500).json({ error: error.message });
+        }
+        res.json({ isSetupNeeded: !config });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-    if (password === process.env.ADMIN_PASSWORD) {
+// Admin Setup
+router.post("/admin/setup", async (req, res) => {
+    const { password } = req.body;
+    try {
+        const { data: existingConfig } = await supabase.from('SystemConfig').select('*').eq('key', 'adminPassword').single();
+        
+        if (existingConfig) {
+            return res.status(400).json({ message: "Admin password already set up" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const { error: insertError } = await supabase.from('SystemConfig').insert([
+            { key: 'adminPassword', value: hashedPassword, updatedBy: 'system', updatedAt: new Date() }
+        ]);
+
+        if (insertError) throw insertError;
+
         const token = jwt.sign(
             { role: "admin" },
             process.env.JWT_SECRET || "SECRET_KEY",
             { expiresIn: "24h" }
         );
-        return res.json({ token, role: "admin" });
-    }
+        res.json({ token, role: "admin" });
 
-    res.status(401).json({ message: "Invalid admin password" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin Login
+router.post("/admin/login", async (req, res) => {
+    const { password } = req.body;
+
+    try {
+        const { data: config, error } = await supabase.from('SystemConfig').select('*').eq('key', 'adminPassword').single();
+        
+        if (error || !config) {
+            return res.status(404).json({ message: "Admin password not set up" });
+        }
+
+        const isMatch = await bcrypt.compare(password, config.value);
+        if (isMatch) {
+            const token = jwt.sign(
+                { role: "admin" },
+                process.env.JWT_SECRET || "SECRET_KEY",
+                { expiresIn: "24h" }
+            );
+            return res.json({ token, role: "admin" });
+        }
+        
+        res.status(401).json({ message: "Invalid admin password" });
+    } catch (err) {
+         res.status(500).json({ error: err.message });
+    }
 });
 
 // Faculty Login
