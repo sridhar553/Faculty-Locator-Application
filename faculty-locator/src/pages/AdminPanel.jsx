@@ -14,6 +14,7 @@ export default function AdminPanel() {
   const [locations, setLocations] = useState([]);
   const [examMode, setExamMode] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [showLocationForm, setShowLocationForm] = useState(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -134,6 +135,7 @@ export default function AdminPanel() {
         const data = await res.json();
         if (res.ok) {
           setLocationForm({ block: "", floor: "", cabinNo: "" });
+          setShowLocationForm(false);
           loadLocations();
           toast.success("Location added!");
         } else {
@@ -144,6 +146,12 @@ export default function AdminPanel() {
         toast.error("Network error");
         console.error(err);
       });
+  }
+
+  function cancelLocation() {
+    setLocationForm({ block: "", floor: "", cabinNo: "" });
+    setShowLocationForm(false);
+    toast("Canceled", { icon: "ℹ️" });
   }
 
   function deleteLocation(id) {
@@ -283,34 +291,48 @@ export default function AdminPanel() {
 
         {activeTab === "locations" && (
           <div className="tab-section fade-in">
-            <h1>Campus Locations</h1>
-            <p className="subtitle">Manage all available blocks, floors, and cabins</p>
-            
-            <div className="premium-card">
-              <form onSubmit={addLocation} className="modern-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Block</label>
-                    <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Floor</label>
-                    <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Cabin No</label>
-                    <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
-                  </div>
-                  <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                     <button type="submit" className="primary-btn submit-btn" style={{ width: '100%' }}>
-                        Add Location
-                     </button>
-                  </div>
-                </div>
-              </form>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+              <div>
+                <h1 style={{ margin: 0 }}>Campus Locations</h1>
+                <p className="subtitle" style={{ margin: '8px 0 0 0' }}>Manage all available blocks, floors, and cabins</p>
+              </div>
+              {!showLocationForm && (
+                <button onClick={() => setShowLocationForm(true)} className="primary-btn" style={{ padding: '10px 20px' }}>
+                  + New Location
+                </button>
+              )}
             </div>
+            
+            {showLocationForm && (
+              <div className="premium-card">
+                <form onSubmit={addLocation} className="modern-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Block</label>
+                      <input name="block" placeholder="e.g. Block A" value={locationForm.block} onChange={handleLocationChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Floor</label>
+                      <input name="floor" placeholder="e.g. Ground Floor" value={locationForm.floor} onChange={handleLocationChange} required />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Cabin No</label>
+                      <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
+                    </div>
+                    <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+                       <button type="submit" className="primary-btn submit-btn" style={{ flex: 1 }}>
+                          Save
+                       </button>
+                       <button type="button" onClick={cancelLocation} className="primary-btn" style={{ flex: 1, background: '#f1f5f9', color: '#475569' }}>
+                          Cancel
+                       </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
 
             <div className="premium-card table-container">
               <table className="modern-table">
