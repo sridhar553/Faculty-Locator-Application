@@ -149,24 +149,6 @@ export default function StudentSearch() {
       </div>
 
       <div className="departments-section">
-        <div className="department-filters">
-          <button 
-            className={`dept-pill ${selectedDepartment === "All" ? "active" : ""}`}
-            onClick={() => setSelectedDepartment("All")}
-          >
-            All Departments
-          </button>
-          {departments.map(d => (
-            <button 
-              key={d.id} 
-              className={`dept-pill ${selectedDepartment === d.name ? "active" : ""}`}
-              onClick={() => setSelectedDepartment(d.name)}
-            >
-              {d.name}
-            </button>
-          ))}
-        </div>
-
         <div className="department-cards-grid">
           {departments.map(dept => (
             <div 
