@@ -102,53 +102,62 @@ export default function StudentSearch() {
       <div className="advanced-search-container" style={{ 
         display: 'flex', 
         alignItems: 'center',
-        border: 'none', 
         borderRadius: '50px', 
-        background: '#ffffff', 
-        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+        background: '#f1f5f9', 
         marginBottom: '40px',
         maxWidth: '650px',
         margin: '0 auto 40px auto',
-        padding: '6px 6px 6px 20px'
+        padding: '4px 16px'
       }}>
+        <div style={{ padding: '8px', display: 'flex', alignItems: 'center', color: '#94a3b8' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
         <input
           type="text"
-          placeholder="Search for Faculty, Departments, or Buildings..."
+          placeholder="Search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              search();
+            }
+          }}
           style={{ 
             flex: 1, 
             border: 'none', 
             background: 'transparent', 
             boxShadow: 'none', 
-            padding: '10px 0', 
+            padding: '12px 8px', 
             fontSize: '1rem',
             outline: 'none',
             color: '#333'
           }}
         />
-        <button 
-          onClick={search} 
-          style={{ 
-            border: 'none', 
-            background: '#ffffff', 
-            padding: '10px 24px', 
-            borderRadius: '40px',
-            cursor: 'pointer',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-            transition: 'transform 0.2s, box-shadow 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.12)'}
-          onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)'}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
+        {query && (
+          <button 
+            onClick={() => {
+              setQuery('');
+              setResults(faculty);
+            }}
+            style={{ 
+              border: 'none', 
+              background: 'transparent', 
+              padding: '8px', 
+              cursor: 'pointer',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#cbd5e1" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M15 9L9 15M9 9L15 15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       <div className="departments-section">
