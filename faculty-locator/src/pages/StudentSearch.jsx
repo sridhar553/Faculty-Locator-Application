@@ -104,13 +104,20 @@ export default function StudentSearch() {
         Find faculty availability and location in real-time.
       </p>
 
-      <div className="search-box">
+      <div className="search-box" style={{ display: 'flex', gap: '8px' }}>
         <input
+          type="text"
           placeholder="Search faculty name..."
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{ flex: 1 }}
         />
-        <button onClick={search}>Search</button>
+        <button className="primary-btn" onClick={search} style={{ padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: '1.2rem' }}>🔍</span>
+        </button>
+        <button className="primary-btn" style={{ padding: '0 16px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: '1.2rem' }}>⚙️</span>
+        </button>
       </div>
 
       <div className="departments-section">

@@ -307,11 +307,29 @@ button:active {
 }
 
 /* Mobile Responsive */
-@media (max-width: 600px) {
-  .nav { padding: 12px 20px; justify-content: center; }
+@media (max-width: 768px) {
+  .nav-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .nav-left { order: 1; }
+  .nav-right { order: 2; }
+  .centered-nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .centered-nav::-webkit-scrollbar { display: none; }
+  
   .container { margin: 20px auto; }
   h1 { font-size: 1.8rem; }
-  .search-box { flex-direction: column; }
+  .search-box { flex-direction: row; }
   .faculty-grid { grid-template-columns: 1fr; }
   .department-cards-grid { 
     grid-template-columns: repeat(2, 1fr); 
