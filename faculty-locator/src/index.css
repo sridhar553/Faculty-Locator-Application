@@ -765,8 +765,8 @@ button:active {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border-radius: 12px;
+  padding: 8px 16px;
   width: 100%;
   color: white;
   text-align: left;
