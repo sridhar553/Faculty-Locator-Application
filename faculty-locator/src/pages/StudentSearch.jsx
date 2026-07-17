@@ -101,18 +101,20 @@ export default function StudentSearch() {
 
       <div className="advanced-search-container" style={{ 
         display: 'flex', 
-        alignItems: 'stretch',
-        border: '1px solid #cbd5e1', 
+        alignItems: 'center',
+        border: 'none', 
         borderRadius: '50px', 
         overflow: 'hidden', 
         background: '#ffffff', 
-        marginBottom: '24px',
-        maxWidth: '800px',
-        margin: '0 auto 24px auto'
+        boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+        marginBottom: '40px',
+        maxWidth: '650px',
+        margin: '0 auto 40px auto',
+        padding: '4px 8px'
       }}>
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search for Faculty, Departments, or Buildings..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           style={{ 
@@ -120,28 +122,25 @@ export default function StudentSearch() {
             border: 'none', 
             background: 'transparent', 
             boxShadow: 'none', 
-            padding: '14px 24px', 
+            padding: '12px 20px', 
             fontSize: '1rem',
-            outline: 'none'
+            outline: 'none',
+            color: '#333'
           }}
         />
         <button 
           onClick={search} 
           style={{ 
             border: 'none', 
-            borderLeft: '1px solid #cbd5e1', 
-            background: '#f8fafc', 
-            padding: '0 24px', 
+            background: 'transparent', 
+            padding: '0 16px', 
             cursor: 'pointer',
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center',
-            transition: 'background 0.2s'
+            justifyContent: 'center'
           }}
-          onMouseOver={(e) => e.currentTarget.style.background = '#f1f5f9'}
-          onMouseOut={(e) => e.currentTarget.style.background = '#f8fafc'}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
@@ -150,18 +149,22 @@ export default function StudentSearch() {
 
       <div className="departments-section">
         <div className="department-cards-grid">
-          {departments.map(dept => (
-            <div 
-              key={dept.id} 
-              className={`dept-card ${selectedDepartment === dept.name ? "selected" : ""}`}
-              style={{ backgroundImage: `url(${dept.imageUrl})` }}
-              onClick={() => setSelectedDepartment(selectedDepartment === dept.name ? "All" : dept.name)}
-            >
-              <div className="dept-overlay">
-                <h4>{dept.name}</h4>
+          {departments.map(dept => {
+            const facultyCount = faculty.filter(f => f.department === dept.name).length;
+            return (
+              <div 
+                key={dept.id} 
+                className={`dept-card ${selectedDepartment === dept.name ? "selected" : ""}`}
+                style={{ backgroundImage: `url(${dept.imageUrl})` }}
+                onClick={() => setSelectedDepartment(selectedDepartment === dept.name ? "All" : dept.name)}
+              >
+                <div className="dept-card-content">
+                  <h4 style={{ textTransform: 'uppercase' }}>{dept.name}</h4>
+                  <p>{facultyCount} Faculty Member{facultyCount !== 1 ? 's' : ''}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
