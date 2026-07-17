@@ -52,17 +52,7 @@ export default function App() {
 
 function DynamicNav() {
   const { user, logout } = useAuth();
-  const [navLinks, setNavLinks] = useState([]);
   const location = useLocation();
-  
-  useEffect(() => {
-    fetch("/api/nav")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setNavLinks(data);
-      })
-      .catch(err => console.error(err));
-  }, []);
   
   return (
     <header className="top-nav-wrapper">
@@ -74,16 +64,13 @@ function DynamicNav() {
           </Link>
         </div>
 
-        {/* Center: Dynamic Links */}
+        {/* Center: Hardcoded Links matching mockup */}
         <nav className="centered-nav">
-          {navLinks.map(link => {
-            const isActive = location.pathname === link.url;
-            return (
-              <Link key={link.id} to={link.url} className={`nav-link ${isActive ? 'active' : ''}`}>
-                {link.label}
-              </Link>
-            );
-          })}
+          <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Home</Link>
+          <Link to="/#departments" className={`nav-link ${location.pathname === '/#departments' ? 'active' : ''}`}>Departments</Link>
+          <Link to="/#faculty" className={`nav-link ${location.pathname === '/#faculty' ? 'active' : ''}`}>Faculty</Link>
+          <Link to="/map" className={`nav-link ${location.pathname === '/map' ? 'active' : ''}`}>Map</Link>
+          <Link to="/about" className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}>About</Link>
         </nav>
         
         {/* Right: Auth / Dashboard Links */}
@@ -97,9 +84,9 @@ function DynamicNav() {
           )}
 
           {!user ? (
-            <Link to="/login" className="primary-btn" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Login</Link>
+            <Link to="/login" className="nav-link" style={{ fontWeight: 500 }}>Sign In</Link>
           ) : (
-            <button onClick={logout} className="action-btn delete" style={{ padding: '8px 16px' }}>Logout</button>
+            <button onClick={logout} className="nav-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Sign Out</button>
           )}
         </div>
       </div>
