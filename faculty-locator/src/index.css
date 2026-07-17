@@ -289,6 +289,10 @@ button:active {
   h1 { font-size: 1.8rem; }
   .search-box { flex-direction: column; }
   .faculty-grid { grid-template-columns: 1fr; }
+  .department-cards-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 12px; 
+  }
 }
 
 /* Admin Sidebar Layout */
@@ -684,12 +688,12 @@ button:active {
 
 .department-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 20px;
 }
 
 .dept-card {
-  height: 140px;
+  height: 220px;
   border-radius: 16px;
   position: relative;
   overflow: hidden;
