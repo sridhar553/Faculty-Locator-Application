@@ -77,11 +77,29 @@ export default function StudentSearch() {
   }, [socket, faculty]);
 
   function search() {
-    const filtered = faculty.filter(f =>
-      f.name.toLowerCase().includes(query.toLowerCase())
-    );
+    if (!query) {
+      setResults(faculty);
+      return;
+    }
+    const lowerQuery = query.toLowerCase();
+    const filtered = faculty.filter(f => {
+      const name = f.name?.toLowerCase() || "";
+      const dept = f.department?.toLowerCase() || "";
+      const subject = f.subject?.toLowerCase() || "";
+      const loc = f.timetableLocation?.toLowerCase() || "";
+      
+      return name.includes(lowerQuery) || 
+             dept.includes(lowerQuery) || 
+             subject.includes(lowerQuery) || 
+             loc.includes(lowerQuery);
+    });
     setResults(filtered);
   }
+
+  // Automatically search when query changes
+  useEffect(() => {
+    search();
+  }, [query]);
 
   let displayedFaculty = examMode
     ? results.filter(f => f.liveStatus?.availability === "Available" || f.liveStatus?.availability === "Busy")
@@ -140,22 +158,18 @@ export default function StudentSearch() {
           <button 
             onClick={() => {
               setQuery('');
-              setResults(faculty);
             }}
             style={{ 
               border: 'none', 
               background: 'transparent', 
-              padding: '8px', 
+              padding: '8px 12px', 
               cursor: 'pointer',
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center'
+              color: '#64748b',
+              fontSize: '0.9rem',
+              fontWeight: '600'
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#cbd5e1" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M15 9L9 15M9 9L15 15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            Clear
           </button>
         )}
       </div>
