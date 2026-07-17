@@ -15,6 +15,8 @@ export default function AdminPanel() {
   const [examMode, setExamMode] = useState(false);
   const [logs, setLogs] = useState([]);
   const [showLocationForm, setShowLocationForm] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [showDepartmentForm, setShowDepartmentForm] = useState(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -30,11 +32,17 @@ export default function AdminPanel() {
     cabinNo: ""
   });
 
+  const [departmentForm, setDepartmentForm] = useState({
+    name: "",
+    imageUrl: ""
+  });
+
   useEffect(() => {
     loadFaculty();
     loadConfig();
     loadLogs();
     loadLocations();
+    loadDepartments();
   }, []);
 
   useEffect(() => {
@@ -77,6 +85,15 @@ export default function AdminPanel() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setLocations(data);
+      })
+      .catch(err => console.error(err));
+  }
+
+  function loadDepartments() {
+    fetch("/api/departments")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setDepartments(data);
       })
       .catch(err => console.error(err));
   }
@@ -174,6 +191,60 @@ export default function AdminPanel() {
       .catch(err => console.error(err));
   }
 
+  function handleDepartmentChange(e) {
+    setDepartmentForm({ ...departmentForm, [e.target.name]: e.target.value });
+  }
+
+  function addDepartment(e) {
+    e.preventDefault();
+    if (!departmentForm.name || !departmentForm.imageUrl) {
+      toast.error("Name and Image URL are required");
+      return;
+    }
+    
+    fetch("/api/departments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${user.token}`
+      },
+      body: JSON.stringify(departmentForm)
+    })
+      .then(async res => {
+        const data = await res.json();
+        if (res.ok) {
+          setDepartmentForm({ name: "", imageUrl: "" });
+          setShowDepartmentForm(false);
+          loadDepartments();
+          toast.success("Department added!");
+        } else {
+          toast.error(data.message || data.error || "Error adding department");
+        }
+      })
+      .catch(err => {
+        toast.error("Network error");
+        console.error(err);
+      });
+  }
+
+  function deleteDepartment(id) {
+    if (!window.confirm("Are you sure you want to delete this department?")) return;
+    fetch(`/api/departments/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${user.token}` }
+    })
+      .then(async res => {
+        if (res.ok) {
+          loadDepartments();
+          toast.success("Department removed");
+        } else {
+          const data = await res.json();
+          toast.error(data.message || "Error deleting department");
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
   function addFaculty(e) {
     e.preventDefault();
     if (!form.name || !form.email) {
@@ -247,6 +318,9 @@ export default function AdminPanel() {
           </button>
           <button className={activeTab === "locations" ? "active" : ""} onClick={() => setActiveTab("locations")}>
             <span className="icon">📍</span> Campus Locations
+          </button>
+          <button className={activeTab === "departments" ? "active" : ""} onClick={() => setActiveTab("departments")}>
+            <span className="icon">🏛️</span> Departments
           </button>
           <button className={activeTab === "add-faculty" ? "active" : ""} onClick={() => setActiveTab("add-faculty")}>
             <span className="icon">✉️</span> Invite Faculty
@@ -356,6 +430,80 @@ export default function AdminPanel() {
                         <td>{loc.cabinNo}</td>
                         <td>
                           <button onClick={() => deleteLocation(loc.id)} className="action-btn delete">Remove</button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "departments" && (
+          <div className="tab-section fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+              <div>
+                <h1 style={{ margin: 0 }}>Departments</h1>
+                <p className="subtitle" style={{ margin: '8px 0 0 0' }}>Manage department cards shown on the home page</p>
+              </div>
+              {!showDepartmentForm && (
+                <button onClick={() => setShowDepartmentForm(true)} className="primary-btn" style={{ padding: '10px 20px' }}>
+                  + New Department
+                </button>
+              )}
+            </div>
+            
+            {showDepartmentForm && (
+              <div className="modal-overlay">
+                <div className="modal-content" style={{ maxWidth: '500px', padding: '40px' }}>
+                  <h2 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', color: '#0f172a' }}>Add New Department</h2>
+                  <form onSubmit={addDepartment} className="modern-form">
+                    <div className="form-group">
+                      <label>DEPARTMENT NAME</label>
+                      <input name="name" placeholder="e.g. Computer Science" value={departmentForm.name} onChange={handleDepartmentChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>IMAGE URL</label>
+                      <input name="imageUrl" placeholder="https://example.com/image.jpg" value={departmentForm.imageUrl} onChange={handleDepartmentChange} required />
+                      {departmentForm.imageUrl && (
+                        <div style={{ marginTop: '10px', height: '100px', borderRadius: '8px', overflow: 'hidden', backgroundImage: `url(${departmentForm.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
+                       <button type="submit" className="primary-btn submit-btn" style={{ flex: 1, padding: '14px 24px' }}>
+                          Save
+                       </button>
+                       <button type="button" onClick={() => setShowDepartmentForm(false)} className="primary-btn" style={{ flex: 1, padding: '14px 24px', background: '#f1f5f9', color: '#475569' }}>
+                          Cancel
+                       </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <div className="premium-card table-container">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {departments.length === 0 ? (
+                    <tr><td colSpan="3" className="empty-state">No departments found</td></tr>
+                  ) : (
+                    departments.map(dept => (
+                      <tr key={dept.id}>
+                        <td>
+                          <div style={{ width: '60px', height: '40px', borderRadius: '6px', backgroundImage: `url(${dept.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                        </td>
+                        <td className="font-medium" style={{ verticalAlign: 'middle' }}>{dept.name}</td>
+                        <td style={{ verticalAlign: 'middle' }}>
+                          <button onClick={() => deleteDepartment(dept.id)} className="action-btn delete">Remove</button>
                         </td>
                       </tr>
                     ))

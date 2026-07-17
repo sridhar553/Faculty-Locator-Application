@@ -6,6 +6,8 @@ export default function StudentSearch() {
   const [query, setQuery] = useState("");
   const [faculty, setFaculty] = useState([]);
   const [results, setResults] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [examMode, setExamMode] = useState(false);
   const socket = useSocket();
 
@@ -30,6 +32,13 @@ export default function StudentSearch() {
           const mode = data.find(c => c.key === "examMode")?.value;
           setExamMode(!!mode);
         }
+      })
+      .catch(err => console.error(err));
+
+    fetch("/api/departments")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setDepartments(data);
       })
       .catch(err => console.error(err));
   }, []);
@@ -74,9 +83,13 @@ export default function StudentSearch() {
     setResults(filtered);
   }
 
-  const displayedFaculty = examMode
+  let displayedFaculty = examMode
     ? results.filter(f => f.liveStatus?.availability === "Available" || f.liveStatus?.availability === "Busy")
     : results;
+
+  if (selectedDepartment !== "All") {
+    displayedFaculty = displayedFaculty.filter(f => f.department === selectedDepartment);
+  }
 
   return (
     <div className="container">
@@ -98,6 +111,41 @@ export default function StudentSearch() {
           onChange={e => setQuery(e.target.value)}
         />
         <button onClick={search}>Search</button>
+      </div>
+
+      <div className="departments-section">
+        <div className="department-filters">
+          <button 
+            className={`dept-pill ${selectedDepartment === "All" ? "active" : ""}`}
+            onClick={() => setSelectedDepartment("All")}
+          >
+            All Departments
+          </button>
+          {departments.map(d => (
+            <button 
+              key={d.id} 
+              className={`dept-pill ${selectedDepartment === d.name ? "active" : ""}`}
+              onClick={() => setSelectedDepartment(d.name)}
+            >
+              {d.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="department-cards-grid">
+          {departments.map(dept => (
+            <div 
+              key={dept.id} 
+              className={`dept-card ${selectedDepartment === dept.name ? "selected" : ""}`}
+              style={{ backgroundImage: `url(${dept.imageUrl})` }}
+              onClick={() => setSelectedDepartment(selectedDepartment === dept.name ? "All" : dept.name)}
+            >
+              <div className="dept-overlay">
+                <h4>{dept.name}</h4>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {displayedFaculty.length === 0 && (
