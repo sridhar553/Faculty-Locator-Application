@@ -322,6 +322,7 @@ button:active {
     width: 100%;
     overflow-x: auto;
     padding-bottom: 4px;
+    padding-right: 20px;
     justify-content: flex-start;
     scrollbar-width: none;
   }

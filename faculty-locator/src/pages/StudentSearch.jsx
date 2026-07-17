@@ -99,23 +99,18 @@ export default function StudentSearch() {
         </div>
       )}
 
-      <h1>Faculty Locator</h1>
-      <p style={{ color: "#555" }}>
-        Find faculty availability and location in real-time.
-      </p>
-
-      <div className="search-box" style={{ display: 'flex', gap: '8px' }}>
+      <div className="advanced-search-container" style={{ display: 'flex', gap: '8px', background: '#fff', padding: '8px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
         <input
           type="text"
-          placeholder="Search faculty name..."
+          placeholder="Search faculty name, department..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ flex: 1 }}
+          style={{ flex: 1, border: 'none', background: 'transparent', boxShadow: 'none', padding: '8px 16px', fontSize: '1rem' }}
         />
-        <button className="primary-btn" onClick={search} style={{ padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: '1.2rem' }}>🔍</span>
+        <button className="primary-btn" onClick={search} style={{ padding: '0 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: '1.2rem', marginRight: '6px' }}>🔍</span> Search
         </button>
-        <button className="primary-btn" style={{ padding: '0 16px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button className="primary-btn" style={{ padding: '0 16px', borderRadius: '8px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
           <span style={{ fontSize: '1.2rem' }}>⚙️</span>
         </button>
       </div>
