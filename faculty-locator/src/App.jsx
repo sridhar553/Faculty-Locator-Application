@@ -65,31 +65,44 @@ function DynamicNav() {
   }, []);
   
   return (
-    <div className="top-nav-wrapper">
-      <nav className="centered-nav">
-        {navLinks.map(link => {
-          const isActive = location.pathname === link.url;
-          return (
-            <Link key={link.id} to={link.url} className={`nav-link ${isActive ? 'active' : ''}`}>
-              {link.label}
-            </Link>
-          );
-        })}
-        
-        {user?.role === "faculty" && (
-          <Link to="/dashboard" className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}>Dashboard</Link>
-        )}
-        
-        {user?.role === "admin" && (
-          <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>Admin</Link>
-        )}
+    <header className="top-nav-wrapper">
+      <div className="nav-container">
+        {/* Left: Logo */}
+        <div className="nav-left">
+          <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+            <img src="/logo.png" alt="Faculty Locator Logo" style={{ height: "45px" }} />
+          </Link>
+        </div>
 
-        {!user ? (
-          <Link to="/login" className="nav-link auth-link">Login</Link>
-        ) : (
-          <button onClick={logout} className="nav-link auth-link logout">Logout</button>
-        )}
-      </nav>
-    </div>
+        {/* Center: Dynamic Links */}
+        <nav className="centered-nav">
+          {navLinks.map(link => {
+            const isActive = location.pathname === link.url;
+            return (
+              <Link key={link.id} to={link.url} className={`nav-link ${isActive ? 'active' : ''}`}>
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+        
+        {/* Right: Auth / Dashboard Links */}
+        <div className="nav-right">
+          {user?.role === "faculty" && (
+            <Link to="/dashboard" className="nav-link">Dashboard</Link>
+          )}
+          
+          {user?.role === "admin" && (
+            <Link to="/admin" className="nav-link">Admin</Link>
+          )}
+
+          {!user ? (
+            <Link to="/login" className="primary-btn" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Login</Link>
+          ) : (
+            <button onClick={logout} className="action-btn delete" style={{ padding: '8px 16px' }}>Logout</button>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
