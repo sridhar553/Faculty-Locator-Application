@@ -34,8 +34,9 @@ export default function AdminPanel() {
 
   const [departmentForm, setDepartmentForm] = useState({
     name: "",
-    imageUrl: ""
+    imageFile: null
   });
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     loadFaculty();
@@ -195,34 +196,63 @@ export default function AdminPanel() {
     setDepartmentForm({ ...departmentForm, [e.target.name]: e.target.value });
   }
 
+  function handleDepartmentFileChange(e) {
+    if (e.target.files && e.target.files[0]) {
+      setDepartmentForm({ ...departmentForm, imageFile: e.target.files[0] });
+    }
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(e) {
+    e.preventDefault();
+    setIsDragging(false);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setDepartmentForm({ ...departmentForm, imageFile: e.dataTransfer.files[0] });
+    }
+  }
+
   function addDepartment(e) {
     e.preventDefault();
-    if (!departmentForm.name || !departmentForm.imageUrl) {
-      toast.error("Name and Image URL are required");
+    if (!departmentForm.name || !departmentForm.imageFile) {
+      toast.error("Name and Image file are required");
       return;
     }
     
+    const toastId = toast.loading("Uploading image and saving department...");
+    
+    const formData = new FormData();
+    formData.append("name", departmentForm.name);
+    formData.append("image", departmentForm.imageFile);
+
     fetch("/api/departments", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${user.token}`
       },
-      body: JSON.stringify(departmentForm)
+      body: formData
     })
       .then(async res => {
         const data = await res.json();
         if (res.ok) {
-          setDepartmentForm({ name: "", imageUrl: "" });
+          setDepartmentForm({ name: "", imageFile: null });
           setShowDepartmentForm(false);
           loadDepartments();
-          toast.success("Department added!");
+          toast.success("Department added successfully!", { id: toastId });
         } else {
-          toast.error(data.message || data.error || "Error adding department");
+          toast.error(data.message || data.error || "Error adding department", { id: toastId });
         }
       })
       .catch(err => {
-        toast.error("Network error");
+        toast.error("Network error", { id: toastId });
         console.error(err);
       });
   }
@@ -464,11 +494,31 @@ export default function AdminPanel() {
                       <input name="name" placeholder="e.g. Computer Science" value={departmentForm.name} onChange={handleDepartmentChange} required />
                     </div>
                     <div className="form-group">
-                      <label>IMAGE URL</label>
-                      <input name="imageUrl" placeholder="https://example.com/image.jpg" value={departmentForm.imageUrl} onChange={handleDepartmentChange} required />
-                      {departmentForm.imageUrl && (
-                        <div style={{ marginTop: '10px', height: '100px', borderRadius: '8px', overflow: 'hidden', backgroundImage: `url(${departmentForm.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                      )}
+                      <label>DEPARTMENT IMAGE</label>
+                      <div 
+                        className={`dropzone ${isDragging ? "active" : ""}`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => document.getElementById("fileInput").click()}
+                      >
+                        <input 
+                          id="fileInput"
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleDepartmentFileChange} 
+                          style={{ display: "none" }}
+                        />
+                        {departmentForm.imageFile ? (
+                          <div style={{ width: '100%', height: '120px', borderRadius: '8px', overflow: 'hidden', backgroundImage: `url(${URL.createObjectURL(departmentForm.imageFile)})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                        ) : (
+                          <div className="dropzone-text">
+                            <span style={{ fontSize: "2rem", display: "block", marginBottom: "8px" }}>📁</span>
+                            <strong>Click to browse</strong> or drag and drop<br/>
+                            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>PNG, JPG, GIF up to 5MB</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
                        <button type="submit" className="primary-btn submit-btn" style={{ flex: 1, padding: '14px 24px' }}>

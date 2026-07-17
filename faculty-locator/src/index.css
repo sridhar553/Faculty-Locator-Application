@@ -686,3 +686,29 @@ button:active {
   font-weight: 600;
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
+
+/* Drag and Drop Zone */
+.dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.dropzone:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.dropzone.active {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.05);
+  transform: scale(1.02);
+}
+.dropzone-text {
+  color: #475569;
+  font-size: 0.95rem;
+  pointer-events: none;
+}

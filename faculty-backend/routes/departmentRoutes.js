@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
+
+// Setup multer to store file in memory
+const upload = multer({ storage: multer.memoryStorage() });
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -24,10 +28,38 @@ router.get("/", async (req, res) => {
     }
 });
 
-// POST add new department
-router.post("/", isAdmin, async (req, res) => {
-    const { name, imageUrl } = req.body;
+// POST add new department with image upload
+router.post("/", isAdmin, upload.single("image"), async (req, res) => {
+    const { name } = req.body;
+    const file = req.file;
+
     try {
+        if (!name || !file) {
+            return res.status(400).json({ message: "Name and image file are required" });
+        }
+
+        // Upload to Supabase Storage
+        const fileExt = file.originalname.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('department-images')
+            .upload(filePath, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false
+            });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+            .from('department-images')
+            .getPublicUrl(filePath);
+
+        const imageUrl = urlData.publicUrl;
+
+        // Insert into database
         const { data, error } = await supabase.from('Departments').insert([
             { name, imageUrl, createdAt: new Date() }
         ]).select();
