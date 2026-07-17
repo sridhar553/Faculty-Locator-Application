@@ -17,6 +17,8 @@ export default function AdminPanel() {
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
+  const [navLinks, setNavLinks] = useState([]);
+  const [showNavForm, setShowNavForm] = useState(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -36,6 +38,13 @@ export default function AdminPanel() {
     name: "",
     imageFile: null
   });
+
+  const [navForm, setNavForm] = useState({
+    label: "",
+    url: "",
+    orderIndex: 0
+  });
+
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
@@ -44,6 +53,7 @@ export default function AdminPanel() {
     loadLogs();
     loadLocations();
     loadDepartments();
+    loadNavLinks();
   }, []);
 
   useEffect(() => {
@@ -95,6 +105,15 @@ export default function AdminPanel() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setDepartments(data);
+      })
+      .catch(err => console.error(err));
+  }
+
+  function loadNavLinks() {
+    fetch("/api/nav")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setNavLinks(data);
       })
       .catch(err => console.error(err));
   }
@@ -275,6 +294,54 @@ export default function AdminPanel() {
       .catch(err => console.error(err));
   }
 
+  function handleNavChange(e) {
+    setNavForm({ ...navForm, [e.target.name]: e.target.value });
+  }
+
+  function addNavLink(e) {
+    e.preventDefault();
+    if (!navForm.label || !navForm.url) {
+      toast.error("Label and URL are required");
+      return;
+    }
+    
+    fetch("/api/nav", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${user.token}`
+      },
+      body: JSON.stringify({ ...navForm, orderIndex: navLinks.length })
+    })
+      .then(async res => {
+        if (res.ok) {
+          setNavForm({ label: "", url: "", orderIndex: 0 });
+          setShowNavForm(false);
+          loadNavLinks();
+          toast.success("Navigation link added!");
+        } else {
+          const data = await res.json();
+          toast.error(data.message || "Error adding link");
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
+  function deleteNavLink(id) {
+    if (!window.confirm("Delete this navigation link?")) return;
+    fetch(`/api/nav/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${user.token}` }
+    })
+      .then(async res => {
+        if (res.ok) {
+          loadNavLinks();
+          toast.success("Link removed");
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
   function addFaculty(e) {
     e.preventDefault();
     if (!form.name || !form.email) {
@@ -351,6 +418,9 @@ export default function AdminPanel() {
           </button>
           <button className={activeTab === "departments" ? "active" : ""} onClick={() => setActiveTab("departments")}>
             <span className="icon">🏛️</span> Departments
+          </button>
+          <button className={activeTab === "nav-menu" ? "active" : ""} onClick={() => setActiveTab("nav-menu")}>
+            <span className="icon">🧭</span> Navigation Menu
           </button>
           <button className={activeTab === "add-faculty" ? "active" : ""} onClick={() => setActiveTab("add-faculty")}>
             <span className="icon">✉️</span> Invite Faculty
@@ -554,6 +624,71 @@ export default function AdminPanel() {
                         <td className="font-medium" style={{ verticalAlign: 'middle' }}>{dept.name}</td>
                         <td style={{ verticalAlign: 'middle' }}>
                           <button onClick={() => deleteDepartment(dept.id)} className="action-btn delete">Remove</button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "nav-menu" && (
+          <div className="tab-section fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+              <div>
+                <h1 style={{ margin: 0 }}>Navigation Menu</h1>
+                <p className="subtitle" style={{ margin: '8px 0 0 0' }}>Manage the top navigation links shown on the website</p>
+              </div>
+              {!showNavForm && (
+                <button onClick={() => setShowNavForm(true)} className="primary-btn" style={{ padding: '10px 20px' }}>
+                  + Add Link
+                </button>
+              )}
+            </div>
+            
+            {showNavForm && (
+              <div className="modal-overlay">
+                <div className="modal-content" style={{ maxWidth: '400px', padding: '40px' }}>
+                  <h2 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', color: '#0f172a' }}>Add Navigation Link</h2>
+                  <form onSubmit={addNavLink} className="modern-form">
+                    <div className="form-group">
+                      <label>LINK LABEL</label>
+                      <input name="label" placeholder="e.g. Map" value={navForm.label} onChange={handleNavChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>URL / PATH</label>
+                      <input name="url" placeholder="e.g. /map" value={navForm.url} onChange={handleNavChange} required />
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
+                       <button type="submit" className="primary-btn submit-btn" style={{ flex: 1 }}>Save</button>
+                       <button type="button" onClick={() => setShowNavForm(false)} className="primary-btn" style={{ flex: 1, background: '#f1f5f9', color: '#475569' }}>Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <div className="premium-card table-container">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th>URL</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {navLinks.length === 0 ? (
+                    <tr><td colSpan="3" className="empty-state">No navigation links configured</td></tr>
+                  ) : (
+                    navLinks.map(link => (
+                      <tr key={link.id}>
+                        <td className="font-medium">{link.label}</td>
+                        <td style={{ color: "var(--primary)" }}>{link.url}</td>
+                        <td>
+                          <button onClick={() => deleteNavLink(link.id)} className="action-btn delete">Remove</button>
                         </td>
                       </tr>
                     ))

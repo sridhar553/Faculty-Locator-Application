@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
 import { Toaster } from "react-hot-toast";
@@ -8,6 +9,8 @@ import FacultyDashboard from "./pages/FacultyDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import FacultySetup from "./pages/FacultySetup";
 import Login from "./pages/Login";
+import Map from "./pages/Map";
+import About from "./pages/About";
 import { useAuth } from "./context/AuthContext";
 
 export default function App() {
@@ -20,6 +23,8 @@ export default function App() {
 
           <Routes>
             <Route path="/" element={<StudentSearch />} />
+            <Route path="/map" element={<Map />} />
+            <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
             <Route path="/faculty-setup" element={<FacultySetup />} />
             <Route
@@ -47,34 +52,44 @@ export default function App() {
 
 function DynamicNav() {
   const { user, logout } = useAuth();
+  const [navLinks, setNavLinks] = useState([]);
+  const location = useLocation();
+  
+  useEffect(() => {
+    fetch("/api/nav")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setNavLinks(data);
+      })
+      .catch(err => console.error(err));
+  }, []);
   
   return (
-    <nav className="nav" style={{ justifyContent: "space-between", alignItems: "center", padding: "12px 32px" }}>
-      <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-        <Link to="/" style={{ display: "flex", alignItems: "center" }}>
-          <img src="/logo.png" alt="Faculty Locator Logo" style={{ height: "45px" }} />
-        </Link>
-        
-        {/* Dynamic Links */}
+    <div className="top-nav-wrapper">
+      <nav className="centered-nav">
+        {navLinks.map(link => {
+          const isActive = location.pathname === link.url;
+          return (
+            <Link key={link.id} to={link.url} className={`nav-link ${isActive ? 'active' : ''}`}>
+              {link.label}
+            </Link>
+          );
+        })}
         
         {user?.role === "faculty" && (
-          <Link to="/dashboard" className="active">My Dashboard</Link>
+          <Link to="/dashboard" className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}>Dashboard</Link>
         )}
         
         {user?.role === "admin" && (
-          <Link to="/admin" className="active">Admin Panel</Link>
+          <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>Admin</Link>
         )}
-      </div>
 
-      <div>
         {!user ? (
-          <Link to="/login" style={{ background: "#4f46e5", color: "white", padding: "8px 16px", borderRadius: "6px" }}>Login</Link>
+          <Link to="/login" className="nav-link auth-link">Login</Link>
         ) : (
-          <button onClick={logout} style={{ background: "transparent", color: "#ef4444", border: "1px solid #ef4444", padding: "6px 16px", borderRadius: "6px", fontSize: "0.9rem" }}>
-            Logout
-          </button>
+          <button onClick={logout} className="nav-link auth-link logout">Logout</button>
         )}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

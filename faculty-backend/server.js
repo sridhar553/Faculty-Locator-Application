@@ -30,6 +30,7 @@ app.use("/api/faculty", require("./routes/facultyRoutes"));
 app.use("/api/config", require("./routes/configRoutes"));
 app.use("/api/locations", require("./routes/locationRoutes"));
 app.use("/api/departments", require("./routes/departmentRoutes"));
+app.use("/api/nav", require("./routes/navRoutes"));
 
 const jwt = require("jsonwebtoken");
 

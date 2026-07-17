@@ -29,29 +29,65 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphism Navbar */
-.nav {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  padding: 16px 32px;
+/* Dynamic Top Navigation */
+.top-nav-wrapper {
   display: flex;
-  gap: 24px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  justify-content: center;
+  padding: 24px 20px;
+  background: var(--bg-color); /* Match background so it blends seamlessly */
 }
 
-.nav a {
-  color: var(--text-muted);
+.centered-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 6px 8px;
+  border-radius: 100px; /* Full pill shape */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.nav-link {
+  color: var(--text-main);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s;
+  font-size: 0.95rem;
+  padding: 8px 16px;
+  border-radius: 100px;
+  transition: all 0.2s ease;
 }
 
-.nav a:hover, .nav a.active {
+.nav-link:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.nav-link.active {
+  background: #e2e8f0; /* The pill background from the screenshot */
+  color: var(--text-main);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.nav-link.auth-link {
+  font-weight: 600;
   color: var(--primary);
+}
+
+.nav-link.auth-link:hover {
+  background: rgba(79, 70, 229, 0.1);
+}
+
+.nav-link.logout {
+  color: #ef4444;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  font-family: inherit;
+}
+
+.nav-link.logout:hover {
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .container {
