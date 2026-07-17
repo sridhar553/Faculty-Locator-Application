@@ -99,19 +99,52 @@ export default function StudentSearch() {
         </div>
       )}
 
-      <div className="advanced-search-container" style={{ display: 'flex', gap: '8px', background: '#fff', padding: '8px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+      <div className="advanced-search-container" style={{ 
+        display: 'flex', 
+        alignItems: 'stretch',
+        border: '1px solid #cbd5e1', 
+        borderRadius: '50px', 
+        overflow: 'hidden', 
+        background: '#ffffff', 
+        marginBottom: '24px',
+        maxWidth: '800px',
+        margin: '0 auto 24px auto'
+      }}>
         <input
           type="text"
-          placeholder="Search faculty name, department..."
+          placeholder="Search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ flex: 1, border: 'none', background: 'transparent', boxShadow: 'none', padding: '8px 16px', fontSize: '1rem' }}
+          style={{ 
+            flex: 1, 
+            border: 'none', 
+            background: 'transparent', 
+            boxShadow: 'none', 
+            padding: '14px 24px', 
+            fontSize: '1rem',
+            outline: 'none'
+          }}
         />
-        <button className="primary-btn" onClick={search} style={{ padding: '0 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: '1.2rem', marginRight: '6px' }}>🔍</span> Search
-        </button>
-        <button className="primary-btn" style={{ padding: '0 16px', borderRadius: '8px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-          <span style={{ fontSize: '1.2rem' }}>⚙️</span>
+        <button 
+          onClick={search} 
+          style={{ 
+            border: 'none', 
+            borderLeft: '1px solid #cbd5e1', 
+            background: '#f8fafc', 
+            padding: '0 24px', 
+            cursor: 'pointer',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#f1f5f9'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#f8fafc'}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
         </button>
       </div>
 
