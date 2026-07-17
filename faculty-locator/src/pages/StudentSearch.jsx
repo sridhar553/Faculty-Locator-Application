@@ -104,13 +104,12 @@ export default function StudentSearch() {
         alignItems: 'center',
         border: 'none', 
         borderRadius: '50px', 
-        overflow: 'hidden', 
         background: '#ffffff', 
-        boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
         marginBottom: '40px',
         maxWidth: '650px',
         margin: '0 auto 40px auto',
-        padding: '4px 8px'
+        padding: '6px 6px 6px 20px'
       }}>
         <input
           type="text"
@@ -122,7 +121,7 @@ export default function StudentSearch() {
             border: 'none', 
             background: 'transparent', 
             boxShadow: 'none', 
-            padding: '12px 20px', 
+            padding: '10px 0', 
             fontSize: '1rem',
             outline: 'none',
             color: '#333'
@@ -132,15 +131,20 @@ export default function StudentSearch() {
           onClick={search} 
           style={{ 
             border: 'none', 
-            background: 'transparent', 
-            padding: '0 16px', 
+            background: '#ffffff', 
+            padding: '10px 24px', 
+            borderRadius: '40px',
             cursor: 'pointer',
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center'
+            justifyContent: 'center',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+            transition: 'transform 0.2s, box-shadow 0.2s'
           }}
+          onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.12)'}
+          onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)'}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
