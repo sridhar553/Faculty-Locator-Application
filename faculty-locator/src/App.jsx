@@ -5,6 +5,7 @@ import { SocketProvider } from "./context/SocketContext";
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import StudentSearch from "./pages/StudentSearch";
+import Home from "./pages/Home";
 import FacultyDashboard from "./pages/FacultyDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import FacultySetup from "./pages/FacultySetup";
@@ -22,7 +23,8 @@ export default function App() {
           <DynamicNav />
 
           <Routes>
-            <Route path="/" element={<StudentSearch />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/departments" element={<StudentSearch />} />
             <Route path="/map" element={<Map />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
@@ -67,8 +69,8 @@ function DynamicNav() {
         {/* Center: Hardcoded Links matching mockup */}
         <nav className="centered-nav">
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Home</Link>
-          <Link to="/#departments" className={`nav-link ${location.pathname === '/#departments' ? 'active' : ''}`}>Departments</Link>
-          <Link to="/#faculty" className={`nav-link ${location.pathname === '/#faculty' ? 'active' : ''}`}>Faculty</Link>
+          <Link to="/departments" className={`nav-link ${location.pathname === '/departments' ? 'active' : ''}`}>Departments</Link>
+          <Link to="/departments" className={`nav-link ${location.pathname === '/departments' ? 'active' : ''}`}>Faculty</Link>
           <Link to="/map" className={`nav-link ${location.pathname === '/map' ? 'active' : ''}`}>Map</Link>
           <Link to="/about" className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}>About</Link>
         </nav>
