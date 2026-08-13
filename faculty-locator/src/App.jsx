@@ -5,6 +5,7 @@ import { SocketProvider } from "./context/SocketContext";
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import StudentSearch from "./pages/StudentSearch";
+import DepartmentFaculty from "./pages/DepartmentFaculty";
 import Home from "./pages/Home";
 import FacultyDashboard from "./pages/FacultyDashboard";
 import AdminPanel from "./pages/AdminPanel";
@@ -25,6 +26,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/departments" element={<StudentSearch />} />
+            <Route path="/departments/:deptName" element={<DepartmentFaculty />} />
             <Route path="/map" element={<Map />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />

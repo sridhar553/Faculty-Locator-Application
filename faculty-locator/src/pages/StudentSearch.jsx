@@ -1,238 +1,189 @@
 import { useEffect, useState } from "react";
-import { useSocket } from "../context/SocketContext";
-import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentSearch() {
-  const [query, setQuery] = useState("");
   const [faculty, setFaculty] = useState([]);
-  const [results, setResults] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [selectedDepartment, setSelectedDepartment] = useState("All");
-  const [examMode, setExamMode] = useState(false);
-  const socket = useSocket();
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Initial Fetch
     fetch("/api/faculty")
       .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setFaculty(data);
-          setResults(data);
-        } else {
-          console.error("API returned error:", data);
-        }
-      })
-      .catch(err => console.error(err));
-
-    fetch("/api/config")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const mode = data.find(c => c.key === "examMode")?.value;
-          setExamMode(!!mode);
-        }
-      })
+      .then(data => { if (Array.isArray(data)) setFaculty(data); })
       .catch(err => console.error(err));
 
     fetch("/api/departments")
       .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setDepartments(data);
-      })
+      .then(data => { if (Array.isArray(data)) setDepartments(data); })
       .catch(err => console.error(err));
   }, []);
 
-  useEffect(() => {
-    if (!socket) return;
+  const filteredDepts = query.trim()
+    ? departments.filter(d => d.name.toLowerCase().includes(query.toLowerCase()))
+    : departments;
 
-    // 2. Socket Listeners
-    socket.on("statusUpdate", (updatedFaculty) => {
-      setFaculty(prev => prev.map(f =>
-        f.id === updatedFaculty.id ? { ...f, liveStatus: updatedFaculty.liveStatus } : f
-      ));
-
-      // Update filtered results too
-      setResults(prev => prev.map(f =>
-        f.id === updatedFaculty.id ? { ...f, liveStatus: updatedFaculty.liveStatus } : f
-      ));
-
-      if (updatedFaculty.liveStatus.availability === "Available") {
-        const name = faculty.find(f => f.id === updatedFaculty.id)?.name || "A faculty member";
-        toast.success(`${name} is now Available!`, { id: updatedFaculty.id });
-      }
-    });
-
-    socket.on("configUpdate", ({ key, value }) => {
-      if (key === "examMode") {
-        setExamMode(value);
-        toast(value ? "⚠️ Exam Mode is now ENABLED" : "✅ Exam Mode is now DISABLED", { icon: value ? "⚠️" : "✅" });
-      }
-    });
-
-    return () => {
-      socket.off("statusUpdate");
-      socket.off("configUpdate");
-    };
-  }, [socket, faculty]);
-
-  function search() {
-    if (!query) {
-      setResults(faculty);
-      return;
-    }
-    const lowerQuery = query.toLowerCase();
-    const filtered = faculty.filter(f => {
-      const name = f.name?.toLowerCase() || "";
-      const dept = f.department?.toLowerCase() || "";
-      const subject = f.subject?.toLowerCase() || "";
-      const loc = f.timetableLocation?.toLowerCase() || "";
-      
-      return name.includes(lowerQuery) || 
-             dept.includes(lowerQuery) || 
-             subject.includes(lowerQuery) || 
-             loc.includes(lowerQuery);
-    });
-    setResults(filtered);
-  }
-
-  // Automatically search when query changes
-  useEffect(() => {
-    search();
-  }, [query]);
-
-  let displayedFaculty = examMode
-    ? results.filter(f => f.liveStatus?.availability === "Available" || f.liveStatus?.availability === "Busy")
-    : results;
-
-  if (selectedDepartment !== "All") {
-    displayedFaculty = displayedFaculty.filter(f => f.department === selectedDepartment);
+  function handleCardClick(deptName) {
+    navigate(`/departments/${encodeURIComponent(deptName)}`);
   }
 
   return (
-    <div className="container">
-      {examMode && (
-        <div className="banner danger" style={{ background: "#fee2e2", color: "#991b1b", padding: "10px", borderRadius: "8px", marginBottom: "20px", textAlign: "center", border: "1px solid #f87171" }}>
-          <strong>EXAM MODE ON:</strong> Showing only active faculty for practical examinations.
-        </div>
-      )}
+    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px", fontFamily: "'Inter', sans-serif" }}>
+      
+      {/* Page Header */}
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <h1 style={{ margin: "0 0 12px 0", fontSize: "2.2rem", fontWeight: 700, color: "#0f172a" }}>
+          Faculty Directory
+        </h1>
+        <p style={{ margin: 0, color: "#64748b", fontSize: "1.1rem" }}>
+          Select a department to find your professor
+        </p>
+      </div>
 
-      <div className="advanced-search-container" style={{ 
-        display: 'flex', 
-        alignItems: 'center',
-        borderRadius: '50px', 
-        background: '#f1f5f9', 
-        marginBottom: '40px',
-        maxWidth: '650px',
-        margin: '0 auto 40px auto',
-        padding: '4px 16px'
+      {/* Search Bar */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        background: "#fff", borderRadius: "50px",
+        border: "1px solid #e2e8f0",
+        padding: "4px 20px", marginBottom: "48px",
+        maxWidth: "560px", margin: "0 auto 48px auto",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.04)"
       }}>
-        <div style={{ padding: '8px', display: 'flex', alignItems: 'center', color: '#94a3b8' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search departments..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              search();
-            }
-          }}
-          style={{ 
-            flex: 1, 
-            border: 'none', 
-            background: 'transparent', 
-            boxShadow: 'none', 
-            padding: '12px 8px', 
-            fontSize: '1rem',
-            outline: 'none',
-            color: '#333'
+          onChange={e => setQuery(e.target.value)}
+          style={{
+            flex: 1, border: "none", background: "transparent",
+            padding: "14px 12px", fontSize: "1rem", outline: "none", color: "#1e293b"
           }}
         />
         {query && (
-          <button 
-            onClick={() => {
-              setQuery('');
-            }}
-            style={{ 
-              border: 'none', 
-              background: 'transparent', 
-              padding: '8px 12px', 
-              cursor: 'pointer',
-              color: '#64748b',
-              fontSize: '0.9rem',
-              fontWeight: '600'
-            }}
-          >
-            Clear
-          </button>
+          <button onClick={() => setQuery("")} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#94a3b8" }}>✕</button>
         )}
       </div>
 
-      <div className="departments-section">
-        <div className="department-cards-grid">
-          {departments.map(dept => {
-            const facultyCount = faculty.filter(f => f.department === dept.name).length;
-            return (
-              <div 
-                key={dept.id} 
-                className={`dept-card ${selectedDepartment === dept.name ? "selected" : ""}`}
-                style={{ backgroundImage: `url(${dept.imageUrl})` }}
-                onClick={() => setSelectedDepartment(selectedDepartment === dept.name ? "All" : dept.name)}
-              >
-                <div className="dept-card-content">
-                  <h4 style={{ textTransform: 'uppercase' }}>{dept.name}</h4>
-                  <p>{facultyCount} Faculty Member{facultyCount !== 1 ? 's' : ''}</p>
-                </div>
+      {/* Department Cards Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+        gap: "20px"
+      }}>
+        {filteredDepts.map(dept => {
+          const count = faculty.filter(f => f.department === dept.name).length;
+          return (
+            <div
+              key={dept.id}
+              onClick={() => handleCardClick(dept.name)}
+              style={{
+                position: "relative",
+                borderRadius: "16px",
+                overflow: "hidden",
+                cursor: "pointer",
+                height: "200px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                transition: "transform 0.25s, box-shadow 0.25s",
+                backgroundImage: dept.imageUrl ? `url(${dept.imageUrl})` : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundColor: "#4f46e5"
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow = "0 12px 32px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)";
+              }}
+            >
+              {/* Gradient Overlay */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)"
+              }} />
+              {/* Content */}
+              <div style={{
+                position: "absolute", bottom: 0, left: 0, right: 0,
+                padding: "16px 20px", color: "#fff"
+              }}>
+                <h3 style={{ margin: "0 0 4px 0", fontSize: "1.05rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                  {dept.name}
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>
+                  {count} Faculty Member{count !== 1 ? "s" : ""}
+                </p>
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {displayedFaculty.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", background: "var(--surface)", borderRadius: "12px", marginTop: "20px" }}>
-          <h3>No {examMode ? "active" : ""} faculty found</h3>
-          <p>Please check your connection or database setup.</p>
-        </div>
-      )}
-
-      <div className="faculty-grid">
-      {displayedFaculty.map(f => {
-        const status = f.liveStatus?.availability || "Offline";
-        const location = f.liveStatus?.location || f.timetableLocation;
-        const time = f.liveStatus?.updatedAt || "N/A";
-
-        const cls =
-          status === "Available"
-            ? "available"
-            : status === "Busy"
-              ? "busy"
-              : "not";
-
-        return (
-          <div className="card" key={f._id || f.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <h3>{f.name}</h3>
-                <p>{f.department} {f.subject ? `| ${f.subject}` : ""}</p>
+              {/* Arrow Icon */}
+              <div style={{
+                position: "absolute", top: "14px", right: "14px",
+                width: "32px", height: "32px", borderRadius: "50%",
+                background: "rgba(255,255,255,0.15)", backdropFilter: "blur(4px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff"
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
               </div>
-              <span className={`badge ${cls}`} style={{ position: "relative" }}>
-                {status === "Available" && <span className="ping-dot"></span>}
-                {status}
-              </span>
+            </div>
+          );
+        })}
+
+        {/* ALL FACULTY Card — always last */}
+        {!query && (
+          <div
+            onClick={() => handleCardClick("All")}
+            style={{
+              position: "relative",
+              borderRadius: "16px",
+              overflow: "hidden",
+              cursor: "pointer",
+              height: "200px",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+              transition: "transform 0.25s, box-shadow 0.25s",
+              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-5px)";
+              e.currentTarget.style.boxShadow = "0 12px 32px rgba(79, 70, 229, 0.35)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)";
+            }}
+          >
+            {/* Decorative circles */}
+            <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
+            <div style={{ position: "absolute", bottom: "-30px", left: "-20px", width: "120px", height: "120px", borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+
+            {/* Content */}
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0,
+              padding: "16px 20px", color: "#fff"
+            }}>
+              <h3 style={{ margin: "0 0 4px 0", fontSize: "1.05rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                All Faculty
+              </h3>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>
+                {faculty.length} Total Member{faculty.length !== 1 ? "s" : ""}
+              </p>
             </div>
 
-            <p style={{ marginTop: "10px" }}>📍 {location}</p>
-            <p style={{ fontSize: "0.85em", color: "#666" }}>🕒 Last updated: {time}</p>
+            {/* Grid Icon */}
+            <div style={{
+              position: "absolute", top: "14px", right: "14px",
+              width: "32px", height: "32px", borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff"
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+            </div>
           </div>
-        );
-      })}
+        )}
       </div>
     </div>
   );
