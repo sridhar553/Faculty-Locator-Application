@@ -407,29 +407,31 @@ export default function FacultyDashboard() {
             </div>
           </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
-              <label style={{ color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Location</label>
-              <button onClick={fetchGPSLocation} disabled={isLocating} style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}>
-                🌐 {isLocating ? "Fetching..." : "Auto-Locate"}
-              </button>
+          {availability === 'Available' && (
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
+                <label style={{ color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Location</label>
+                <button onClick={fetchGPSLocation} disabled={isLocating} style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  🌐 {isLocating ? "Fetching..." : "Auto-Locate"}
+                </button>
+              </div>
+              <select
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1rem', color: '#1e293b', boxSizing: 'border-box', appearance: 'none', cursor: 'pointer' }}
+              >
+                <option value="">-- Select a Location --</option>
+                {campusLocations.map(loc => {
+                  const label = `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}`;
+                  return <option key={loc.id} value={label}>{label}</option>;
+                })}
+                {location && !campusLocations.some(loc => `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}` === location) && (
+                  <option value={location}>{location}</option>
+                )}
+              </select>
+              <p style={{ margin: '6px 0 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Default: {faculty.timetableLocation}</p>
             </div>
-            <select
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1rem', color: '#1e293b', boxSizing: 'border-box', appearance: 'none', cursor: 'pointer' }}
-            >
-              <option value="">-- Select a Location --</option>
-              {campusLocations.map(loc => {
-                const label = `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}`;
-                return <option key={loc.id} value={label}>{label}</option>;
-              })}
-              {location && !campusLocations.some(loc => `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}` === location) && (
-                <option value={location}>{location}</option>
-              )}
-            </select>
-            <p style={{ margin: '6px 0 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Default: {faculty.timetableLocation}</p>
-          </div>
+          )}
 
           <button
             onClick={updateStatus}
@@ -445,7 +447,12 @@ export default function FacultyDashboard() {
         <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
           {/* Geofence Status */}
           <div style={{ background: distanceFromCollege === null ? '#f8fafc' : isWithinRange ? '#f0fdf4' : '#fef2f2', border: `1px solid ${distanceFromCollege === null ? '#e2e8f0' : isWithinRange ? '#bbf7d0' : '#fecaca'}`, padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
-            <p style={{ margin: '0 0 4px 0', fontSize: '0.78rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Geofence Status</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Geofence Status</p>
+              <button onClick={fetchGPSLocation} disabled={isLocating} style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: '600', fontSize: '0.75rem', cursor: 'pointer' }}>
+                🔄 {isLocating ? "Fetching..." : "Fetch GPS"}
+              </button>
+            </div>
             {distanceFromCollege === null ? (
               <p style={{ margin: 0, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94a3b8' }}></span> Waiting for GPS location...</p>
             ) : isWithinRange ? (
