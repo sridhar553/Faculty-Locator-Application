@@ -14,6 +14,7 @@ export default function FacultyDashboard() {
   const [availability, setAvailability] = useState("Available");
   const [location, setLocation] = useState("");
   const [examMode, setExamMode] = useState(false);
+  const [campusLocations, setCampusLocations] = useState([]);
   
   // Geolocation & Attendance State
   const [isLocating, setIsLocating] = useState(false);
@@ -65,6 +66,11 @@ export default function FacultyDashboard() {
           if (rad) setMaxRadius(Number(rad));
         }
       })
+      .catch(err => console.error(err));
+
+    fetch("/api/locations")
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setCampusLocations(data); })
       .catch(err => console.error(err));
 
     loadMyLogs();
@@ -125,13 +131,32 @@ export default function FacultyDashboard() {
       (position) => {
         const { latitude, longitude } = position.coords;
         setGpsCoords({ lat: latitude, lng: longitude });
-        setLocation(`GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         
         const dist = calculateDistance(latitude, longitude, collegeLat, collegeLng);
         setDistanceFromCollege(dist);
-        
+
+        // Smart location matching: find nearest campus location within 100m
+        let matchedName = null;
+        let closestDist = Infinity;
+        campusLocations.forEach(loc => {
+          if (loc.lat && loc.lng) {
+            const d = calculateDistance(latitude, longitude, loc.lat, loc.lng);
+            if (d < closestDist) {
+              closestDist = d;
+              matchedName = `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}`;
+            }
+          }
+        });
+
+        if (matchedName && closestDist <= 100) {
+          setLocation(matchedName);
+          toast.success(`📍 Matched: ${matchedName} (${dist}m from college)`, { id: "gps" });
+        } else {
+          setLocation(`GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          toast.success(`Location acquired! (${dist}m from college)`, { id: "gps" });
+        }
+
         setIsLocating(false);
-        toast.success(`Location acquired! (${dist}m from college)`, { id: "gps" });
       },
       (error) => {
         setIsLocating(false);
@@ -348,9 +373,7 @@ export default function FacultyDashboard() {
                 {isLocating ? "Fetching..." : "Auto-Locate"}
               </button>
             </div>
-            <input
-              type="text"
-              placeholder="e.g. CS Block Lab 2"
+            <select
               value={location}
               onChange={e => setLocation(e.target.value)}
               style={{
@@ -361,9 +384,21 @@ export default function FacultyDashboard() {
                 background: '#f8fafc',
                 fontSize: '1rem',
                 color: '#1e293b',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                appearance: 'none',
+                cursor: 'pointer'
               }}
-            />
+            >
+              <option value="">-- Select a Location --</option>
+              {campusLocations.map(loc => {
+                const label = `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}`;
+                return <option key={loc.id} value={label}>{label}</option>;
+              })}
+              {/* Always allow manual GPS entry */}
+              {location && !campusLocations.some(loc => `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}` === location) && (
+                <option value={location}>{location}</option>
+              )}
+            </select>
             <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>Default: {faculty.timetableLocation}</p>
           </div>
 

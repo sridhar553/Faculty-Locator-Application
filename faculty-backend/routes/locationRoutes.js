@@ -17,15 +17,17 @@ router.get("/", async (req, res) => {
 // ADD location (Admin only)
 router.post("/", auth, isAdmin, async (req, res) => {
   try {
-    const { block, floor, cabinNo } = req.body;
+    const { block, floor, cabinNo, lat, lng } = req.body;
     
     if (!block || !floor || !cabinNo) {
         return res.status(400).json({ message: "Block, floor, and cabin number are required" });
     }
 
-    const { data, error } = await supabase.from('Locations').insert([
-        { block, floor, cabinNo }
-    ]).select();
+    const insertData = { block, floor, cabinNo };
+    if (lat) insertData.lat = parseFloat(lat);
+    if (lng) insertData.lng = parseFloat(lng);
+
+    const { data, error } = await supabase.from('Locations').insert([insertData]).select();
 
     if (error) throw error;
     res.json({ message: "Location added successfully", location: data[0] });

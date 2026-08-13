@@ -41,7 +41,9 @@ export default function AdminPanel() {
   const [locationForm, setLocationForm] = useState({
     block: "",
     floor: "",
-    cabinNo: ""
+    cabinNo: "",
+    lat: "",
+    lng: ""
   });
 
   const [departmentForm, setDepartmentForm] = useState({
@@ -224,13 +226,25 @@ export default function AdminPanel() {
     setLocationForm({ ...locationForm, [e.target.name]: e.target.value });
   }
 
+  function captureLocationGPS() {
+    if (!navigator.geolocation) { toast.error("Geolocation not supported."); return; }
+    toast.loading("Capturing GPS for this location...", { id: "loc-gps" });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocationForm(prev => ({ ...prev, lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) }));
+        toast.success(`GPS captured: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`, { id: "loc-gps" });
+      },
+      () => toast.error("Failed to get GPS.", { id: "loc-gps" }),
+      { enableHighAccuracy: true }
+    );
+  }
+
   function addLocation(e) {
     e.preventDefault();
     if (!locationForm.block || !locationForm.floor || !locationForm.cabinNo) {
       toast.error("Block, Floor, and Cabin No are required");
       return;
     }
-    
     if (!window.confirm("Are you sure you want to save this location?")) return;
 
     fetch("/api/locations", {
@@ -244,7 +258,7 @@ export default function AdminPanel() {
       .then(async res => {
         const data = await res.json();
         if (res.ok) {
-          setLocationForm({ block: "", floor: "", cabinNo: "" });
+          setLocationForm({ block: "", floor: "", cabinNo: "", lat: "", lng: "" });
           setShowLocationForm(false);
           loadLocations();
           toast.success("Location saved!");
@@ -573,6 +587,21 @@ export default function AdminPanel() {
                       <label>CABIN NO</label>
                       <input name="cabinNo" placeholder="e.g. 104" value={locationForm.cabinNo} onChange={handleLocationChange} required />
                     </div>
+                    <div className="form-group">
+                      <label>GPS COORDINATES <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional but recommended)</span></label>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <input name="lat" placeholder="Latitude" value={locationForm.lat} onChange={handleLocationChange} style={{ flex: 1 }} />
+                        <input name="lng" placeholder="Longitude" value={locationForm.lng} onChange={handleLocationChange} style={{ flex: 1 }} />
+                        <button
+                          type="button"
+                          onClick={captureLocationGPS}
+                          style={{ background: '#4f46e5', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                        >
+                          📍 Capture
+                        </button>
+                      </div>
+                      <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>Stand at the location and click Capture to set GPS automatically. This helps auto-match faculty position.</p>
+                    </div>
                     <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
                        <button type="submit" className="primary-btn submit-btn" style={{ flex: 1, padding: '14px 24px' }}>
                           Save
@@ -593,18 +622,20 @@ export default function AdminPanel() {
                     <th>Block</th>
                     <th>Floor</th>
                     <th>Cabin No</th>
+                    <th>GPS Linked</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {locations.length === 0 ? (
-                    <tr><td colSpan="4" className="empty-state">No locations found</td></tr>
+                    <tr><td colSpan="5" className="empty-state">No locations found</td></tr>
                   ) : (
                     locations.map(loc => (
                       <tr key={loc.id}>
                         <td className="font-medium">{loc.block}</td>
                         <td>{loc.floor}</td>
                         <td>{loc.cabinNo}</td>
+                        <td>{loc.lat ? <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ GPS Set</span> : <span style={{ color: '#94a3b8' }}>No GPS</span>}</td>
                         <td>
                           <button onClick={() => deleteLocation(loc.id)} className="action-btn delete">Remove</button>
                         </td>
