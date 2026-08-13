@@ -240,7 +240,14 @@ export default function FacultyDashboard() {
           clearSignature();
           loadMyLogs();
         } else {
-          toast.error("Failed to record attendance");
+          let errMessage = "Unknown Error";
+          try {
+            const errData = await res.json();
+            errMessage = errData.error || errData.message || JSON.stringify(errData);
+          } catch(e) {
+             errMessage = "Failed to parse error response";
+          }
+          toast.error(`Error ${res.status}: ${errMessage}`);
         }
       })
       .catch(err => {
