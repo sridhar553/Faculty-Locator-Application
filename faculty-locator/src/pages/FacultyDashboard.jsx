@@ -207,8 +207,10 @@ export default function FacultyDashboard() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = ((e.clientX || e.touches?.[0].clientX) - rect.left) * scaleX;
+    const y = ((e.clientY || e.touches?.[0].clientY) - rect.top) * scaleY;
     
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -222,8 +224,10 @@ export default function FacultyDashboard() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = ((e.clientX || e.touches?.[0].clientX) - rect.left) * scaleX;
+    const y = ((e.clientY || e.touches?.[0].clientY) - rect.top) * scaleY;
     
     ctx.lineTo(x, y);
     ctx.stroke();
