@@ -83,7 +83,7 @@ router.post("/", auth, isAdmin, async (req, res) => {
       const resend = new Resend(process.env.RESEND_API_KEY);
       const setupUrl = `https://faculty-locator-application.onrender.com/faculty-setup?token=${setupToken}`;
 
-      await resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from: "Admin <onboarding@resend.dev>",
         to: email,
         subject: "Welcome! Set up your Faculty Account",
@@ -107,6 +107,10 @@ router.post("/", auth, isAdmin, async (req, res) => {
           </div>
         `
       });
+
+      if (error) {
+        throw new Error("Resend Error: " + error.message);
+      }
     } else {
        console.warn("RESEND_API_KEY is missing. Email not sent. Token is:", setupToken);
     }
