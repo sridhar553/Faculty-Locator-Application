@@ -181,5 +181,24 @@ router.delete("/:id", auth, isAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+// RECORD ATTENDANCE (Faculty only)
+// Mock route for testing frontend without DB changes
+router.post("/attendance", auth, isFaculty, async (req, res) => {
+  try {
+    const { type, facultyId, gps, signature } = req.body;
+    
+    // In the future, insert into Supabase here:
+    // await supabase.from('Attendance').insert([{ ... }])
+    
+    console.log(`[ATTENDANCE MOCK] Faculty ${facultyId} did ${type} at coords ${gps?.lat}, ${gps?.lng}`);
+    
+    // Send socket update if desired
+    // req.io.emit("attendanceUpdate", { ... })
 
+    res.json({ message: "Attendance recorded successfully" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+module.exports = router;
