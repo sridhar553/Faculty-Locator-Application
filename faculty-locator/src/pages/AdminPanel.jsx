@@ -15,6 +15,7 @@ export default function AdminPanel() {
   const [examMode, setExamMode] = useState(false);
   const [logs, setLogs] = useState([]);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedSignature, setSelectedSignature] = useState(null);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -998,77 +999,98 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {activeTab === "attendance" && (
-          <div className="tab-section fade-in">
-            <h1>Attendance Register</h1>
-            <p className="subtitle">View all auto-detected faculty check-ins and check-outs.</p>
+        {activeTab === "attendance" && (() => {
+          const year = currentMonth.getFullYear();
+          const month = currentMonth.getMonth();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const monthName = currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+          
+          // Filter logs for current month
+          const monthLogs = attendanceLogs.filter(log => {
+            const logDate = new Date(log.date);
+            return logDate.getFullYear() === year && logDate.getMonth() === month;
+          });
 
-            <div className="premium-card" style={{ padding: '0', overflow: 'hidden' }}>
-              <div className="table-responsive">
-                <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                    <tr>
-                      <th style={{ padding: '16px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date & Time</th>
-                      <th style={{ padding: '16px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Faculty Name</th>
-                      <th style={{ padding: '16px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</th>
-                      <th style={{ padding: '16px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>GPS Location</th>
-                      <th style={{ padding: '16px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Signature</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {attendanceLogs.length === 0 ? (
+          // Group by faculty
+          const facultyMap = {};
+          monthLogs.forEach(log => {
+            const fid = log.facultyId;
+            if (!facultyMap[fid]) {
+              facultyMap[fid] = {
+                id: fid,
+                name: log.Faculty?.name || fid,
+                department: log.Faculty?.department || 'Unknown',
+                attendance: {}
+              };
+            }
+            const day = new Date(log.date).getDate();
+            facultyMap[fid].attendance[day] = true;
+          });
+
+          const facultyList = Object.values(facultyMap).sort((a, b) => a.name.localeCompare(b.name));
+          const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+          return (
+            <div className="tab-section fade-in">
+              <h1>Monthly Attendance Register</h1>
+              <p className="subtitle">View auto-detected faculty attendance formatted as a physical register.</p>
+
+              <div className="premium-card" style={{ padding: '0', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '16px 20px', borderBottom: '2px solid #e2e8f0' }}>
+                  <button 
+                    onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
+                    style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    ◀ Previous
+                  </button>
+                  <h3 style={{ margin: 0, color: '#1e293b', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    {monthName}
+                  </h3>
+                  <button 
+                    onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
+                    style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Next ▶
+                  </button>
+                </div>
+
+                <div className="table-responsive" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                  <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+                    <thead style={{ position: 'sticky', top: 0, background: '#f1f5f9', zIndex: 10, borderBottom: '2px solid #cbd5e1' }}>
                       <tr>
-                        <td colSpan="5" style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>No attendance records found.</td>
+                        <th style={{ padding: '12px', textAlign: 'left', minWidth: '200px', borderRight: '1px solid #e2e8f0', color: '#475569' }}>Name & Department</th>
+                        {daysArray.map(day => (
+                          <th key={day} style={{ padding: '12px 6px', minWidth: '36px', borderRight: '1px solid #e2e8f0', color: '#475569', fontSize: '0.85rem' }}>{day}</th>
+                        ))}
                       </tr>
-                    ) : (
-                      attendanceLogs.map((log) => {
-                        const isCheckIn = log.type === 'CHECK_IN';
-                        return (
-                          <tr key={log.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                            <td style={{ padding: '16px', fontSize: '0.9rem', color: '#334155' }}>
-                              <div style={{ fontWeight: '600' }}>{new Date(log.date).toLocaleDateString()}</div>
-                              <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+                    </thead>
+                    <tbody>
+                      {facultyList.length === 0 ? (
+                        <tr>
+                          <td colSpan={daysInMonth + 1} style={{ padding: '40px', color: '#94a3b8', textAlign: 'center' }}>No attendance records for {monthName}.</td>
+                        </tr>
+                      ) : (
+                        facultyList.map(faculty => (
+                          <tr key={faculty.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ padding: '12px', textAlign: 'left', borderRight: '1px solid #e2e8f0' }}>
+                              <div style={{ fontWeight: '600', color: '#0f172a' }}>{faculty.name}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{faculty.department}</div>
                             </td>
-                            <td style={{ padding: '16px', fontSize: '0.95rem', fontWeight: '500', color: '#0f172a' }}>
-                              {log.Faculty?.name || log.facultyId}
-                            </td>
-                            <td style={{ padding: '16px' }}>
-                              <span style={{ 
-                                padding: '6px 12px', 
-                                borderRadius: '50px', 
-                                fontSize: '0.75rem', 
-                                fontWeight: '700',
-                                background: isCheckIn ? '#d1fae5' : '#fef3c7',
-                                color: isCheckIn ? '#059669' : '#d97706',
-                              }}>
-                                {isCheckIn ? 'MORNING (IN)' : 'EVENING (OUT)'}
-                              </span>
-                            </td>
-                            <td style={{ padding: '16px', fontSize: '0.85rem', color: '#64748b', fontFamily: 'monospace' }}>
-                              {log.gpsLat?.toFixed(4)}, {log.gpsLng?.toFixed(4)}
-                            </td>
-                            <td style={{ padding: '16px' }}>
-                              {log.signature ? (
-                                <button 
-                                  onClick={() => setSelectedSignature(log.signature)}
-                                  style={{ background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}
-                                >
-                                  View Signature
-                                </button>
-                              ) : (
-                                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No signature</span>
-                              )}
-                            </td>
+                            {daysArray.map(day => (
+                              <td key={day} style={{ padding: '8px', borderRight: '1px solid #e2e8f0', background: faculty.attendance[day] ? '#d1fae5' : 'transparent' }}>
+                                {faculty.attendance[day] ? <span style={{ color: '#059669', fontWeight: 'bold', fontSize: '1.2rem' }}>✓</span> : ''}
+                              </td>
+                            ))}
                           </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </main>
 
       {/* Signature Modal */}
