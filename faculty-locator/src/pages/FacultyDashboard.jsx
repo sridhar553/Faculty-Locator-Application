@@ -208,8 +208,8 @@ export default function FacultyDashboard() {
   };
 
   function submitAttendance(type) {
-    if (distanceFromCollege > MAX_RADIUS_METERS) {
-      toast.error(`You are ${distanceFromCollege}m away! Must be within ${MAX_RADIUS_METERS}m.`);
+    if (distanceFromCollege > maxRadius) {
+      toast.error(`You are ${distanceFromCollege}m away! Must be within ${maxRadius}m.`);
       return;
     }
     if (!hasSignature) {
