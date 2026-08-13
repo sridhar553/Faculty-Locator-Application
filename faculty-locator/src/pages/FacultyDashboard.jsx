@@ -4,10 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import toast from "react-hot-toast";
 
-// Set your college coordinates here
-const COLLEGE_LAT = 13.0827; 
-const COLLEGE_LNG = 80.2707;
-const MAX_RADIUS_METERS = 500;
+// College coordinates are now loaded dynamically from Admin Panel settings
 
 export default function FacultyDashboard() {
   const navigate = useNavigate();
@@ -23,6 +20,11 @@ export default function FacultyDashboard() {
   const [gpsCoords, setGpsCoords] = useState(null);
   const [distanceFromCollege, setDistanceFromCollege] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dynamic Geofence Config from Admin Panel
+  const [collegeLat, setCollegeLat] = useState(null);
+  const [collegeLng, setCollegeLng] = useState(null);
+  const [maxRadius, setMaxRadius] = useState(500);
 
   // Signature Pad Ref
   const canvasRef = useRef(null);
@@ -54,6 +56,12 @@ export default function FacultyDashboard() {
         if (Array.isArray(data)) {
           const mode = data.find(c => c.key === "examMode")?.value;
           setExamMode(!!mode);
+          const lat = data.find(c => c.key === "collegeLatitude")?.value;
+          const lng = data.find(c => c.key === "collegeLongitude")?.value;
+          const rad = data.find(c => c.key === "geofenceRadius")?.value;
+          if (lat) setCollegeLat(parseFloat(lat));
+          if (lng) setCollegeLng(parseFloat(lng));
+          if (rad) setMaxRadius(Number(rad));
         }
       })
       .catch(err => console.error(err));
@@ -91,6 +99,10 @@ export default function FacultyDashboard() {
       toast.error("Geolocation is not supported by your browser");
       return;
     }
+    if (!collegeLat || !collegeLng) {
+      toast.error("College location not configured yet. Ask your admin to set it.");
+      return;
+    }
 
     setIsLocating(true);
     toast.loading("Fetching GPS coordinates...", { id: "gps" });
@@ -101,7 +113,7 @@ export default function FacultyDashboard() {
         setGpsCoords({ lat: latitude, lng: longitude });
         setLocation(`GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         
-        const dist = calculateDistance(latitude, longitude, COLLEGE_LAT, COLLEGE_LNG);
+        const dist = calculateDistance(latitude, longitude, collegeLat, collegeLng);
         setDistanceFromCollege(dist);
         
         setIsLocating(false);
@@ -235,7 +247,7 @@ export default function FacultyDashboard() {
     </div>
   );
 
-  const isWithinRange = distanceFromCollege !== null && distanceFromCollege <= MAX_RADIUS_METERS;
+  const isWithinRange = distanceFromCollege !== null && distanceFromCollege <= maxRadius;
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: "'Inter', sans-serif" }}>

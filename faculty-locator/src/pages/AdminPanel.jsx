@@ -20,6 +20,13 @@ export default function AdminPanel() {
   const [navLinks, setNavLinks] = useState([]);
   const [showNavForm, setShowNavForm] = useState(false);
 
+  // Geofence state
+  const [geofenceLat, setGeofenceLat] = useState("");
+  const [geofenceLng, setGeofenceLng] = useState("");
+  const [geofenceRadius, setGeofenceRadius] = useState(500);
+  const [isFetchingGPS, setIsFetchingGPS] = useState(false);
+  const [isSavingGeofence, setIsSavingGeofence] = useState(false);
+
   const [form, setForm] = useState({
     email: "",
     name: "",
@@ -75,9 +82,58 @@ export default function AdminPanel() {
         if (Array.isArray(data)) {
           const mode = data.find(c => c.key === "examMode")?.value;
           setExamMode(!!mode);
+          const lat = data.find(c => c.key === "collegeLatitude")?.value;
+          const lng = data.find(c => c.key === "collegeLongitude")?.value;
+          const rad = data.find(c => c.key === "geofenceRadius")?.value;
+          if (lat) setGeofenceLat(lat);
+          if (lng) setGeofenceLng(lng);
+          if (rad) setGeofenceRadius(Number(rad));
         }
       })
       .catch(err => console.error(err));
+  }
+
+  async function saveGeofenceSetting(key, value) {
+    return fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${user.token}` },
+      body: JSON.stringify({ key, value: String(value) })
+    });
+  }
+
+  async function saveGeofenceSettings() {
+    if (!geofenceLat || !geofenceLng) {
+      toast.error("Please enter valid coordinates first.");
+      return;
+    }
+    setIsSavingGeofence(true);
+    try {
+      await Promise.all([
+        saveGeofenceSetting("collegeLatitude", geofenceLat),
+        saveGeofenceSetting("collegeLongitude", geofenceLng),
+        saveGeofenceSetting("geofenceRadius", geofenceRadius)
+      ]);
+      toast.success("Geofence settings saved! Faculty dashboards updated automatically.");
+    } catch (err) {
+      toast.error("Failed to save geofence settings.");
+    }
+    setIsSavingGeofence(false);
+  }
+
+  function fetchAdminGPS() {
+    if (!navigator.geolocation) { toast.error("Geolocation not supported."); return; }
+    setIsFetchingGPS(true);
+    toast.loading("Detecting your location...", { id: "admin-gps" });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeofenceLat(pos.coords.latitude.toFixed(6));
+        setGeofenceLng(pos.coords.longitude.toFixed(6));
+        setIsFetchingGPS(false);
+        toast.success("Location captured!", { id: "admin-gps" });
+      },
+      () => { setIsFetchingGPS(false); toast.error("Failed to get location.", { id: "admin-gps" }); },
+      { enableHighAccuracy: true }
+    );
   }
 
   function loadLogs() {
@@ -430,6 +486,9 @@ export default function AdminPanel() {
           </button>
           <button className={activeTab === "logs" ? "active" : ""} onClick={() => setActiveTab("logs")}>
             <span className="icon">📜</span> Audit Logs
+          </button>
+          <button className={activeTab === "geofence" ? "active" : ""} onClick={() => setActiveTab("geofence")}>
+            <span className="icon">🗺️</span> Geofence Settings
           </button>
         </nav>
         <div className="sidebar-footer">
@@ -822,6 +881,102 @@ export default function AdminPanel() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "geofence" && (
+          <div className="tab-section fade-in">
+            <h1>Geofence Settings</h1>
+            <p className="subtitle">Set your college location and check-in radius for the attendance system</p>
+
+            {/* Live Preview Banner */}
+            {geofenceLat && geofenceLng && (
+              <div style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "#fff", borderRadius: "12px", padding: "16px 20px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "12px", boxShadow: "0 4px 12px rgba(79,70,229,0.25)" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: "0.95rem" }}>Active Geofence</p>
+                  <p style={{ margin: 0, opacity: 0.85, fontSize: "0.82rem" }}>{geofenceLat}, {geofenceLng} · Radius: {geofenceRadius}m</p>
+                </div>
+              </div>
+            )}
+
+            <div className="premium-card" style={{ padding: "28px" }}>
+              {/* GPS Auto-Detect */}
+              <div style={{ marginBottom: "28px" }}>
+                <label style={{ display: "block", fontWeight: 600, color: "#1e293b", marginBottom: "8px", fontSize: "0.95rem" }}>College Location</label>
+                <p style={{ margin: "0 0 16px 0", color: "#64748b", fontSize: "0.88rem" }}>Click the button below to automatically set your current location as the college centre point, or enter the coordinates manually.</p>
+                <button
+                  onClick={fetchAdminGPS}
+                  disabled={isFetchingGPS}
+                  style={{ display: "flex", alignItems: "center", gap: "8px", background: isFetchingGPS ? "#e2e8f0" : "#4f46e5", color: isFetchingGPS ? "#94a3b8" : "#fff", border: "none", borderRadius: "10px", padding: "12px 20px", fontWeight: 600, fontSize: "0.95rem", cursor: isFetchingGPS ? "not-allowed" : "pointer", marginBottom: "20px", transition: "all 0.2s" }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  {isFetchingGPS ? "Detecting..." : "Use My Current Location"}
+                </button>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Latitude</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 13.082700"
+                      value={geofenceLat}
+                      onChange={e => setGeofenceLat(e.target.value)}
+                      step="0.000001"
+                      style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#f8fafc", fontSize: "0.95rem", boxSizing: "border-box", fontFamily: "monospace" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Longitude</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 80.270700"
+                      value={geofenceLng}
+                      onChange={e => setGeofenceLng(e.target.value)}
+                      step="0.000001"
+                      style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#f8fafc", fontSize: "0.95rem", boxSizing: "border-box", fontFamily: "monospace" }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Radius Slider */}
+              <div style={{ marginBottom: "28px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <label style={{ fontWeight: 600, color: "#1e293b", fontSize: "0.95rem" }}>Check-in Radius</label>
+                  <span style={{ background: "#e0e7ff", color: "#4f46e5", padding: "4px 14px", borderRadius: "50px", fontWeight: 700, fontSize: "0.9rem" }}>{geofenceRadius} m</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="2000"
+                  step="50"
+                  value={geofenceRadius}
+                  onChange={e => setGeofenceRadius(Number(e.target.value))}
+                  style={{ width: "100%", accentColor: "#4f46e5", height: "6px", cursor: "pointer" }}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "#94a3b8", marginTop: "6px" }}>
+                  <span>50m (Strict)</span>
+                  <span>1000m</span>
+                  <span>2000m (Relaxed)</span>
+                </div>
+                <p style={{ margin: "10px 0 0 0", fontSize: "0.82rem", color: "#64748b" }}>Faculty must be within this distance from the college pin to check in.</p>
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={saveGeofenceSettings}
+                disabled={isSavingGeofence || !geofenceLat || !geofenceLng}
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", background: (!geofenceLat || !geofenceLng || isSavingGeofence) ? "#cbd5e1" : "#4f46e5", color: "#fff", border: "none", fontWeight: 700, fontSize: "1rem", cursor: (!geofenceLat || !geofenceLng || isSavingGeofence) ? "not-allowed" : "pointer", transition: "all 0.2s", boxShadow: (!geofenceLat || !geofenceLng) ? "none" : "0 4px 12px rgba(79,70,229,0.3)" }}
+              >
+                {isSavingGeofence ? "Saving..." : "💾 Save Geofence Settings"}
+              </button>
+            </div>
+
+            {/* Info Box */}
+            <div style={{ marginTop: "20px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "16px 20px" }}>
+              <p style={{ margin: 0, color: "#166534", fontSize: "0.88rem", fontWeight: 500 }}>✅ <strong>How this works:</strong> When you save these settings, every faculty member's dashboard will automatically use these coordinates for geofence checking — no code change or re-deployment required!</p>
             </div>
           </div>
         )}
