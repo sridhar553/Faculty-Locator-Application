@@ -720,7 +720,14 @@ export default function AdminPanel() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Department</label>
-                    <input name="department" placeholder="e.g. Computer Science" value={form.department} onChange={handleChange} />
+                    <select name="department" value={form.department} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1rem' }} required>
+                      <option value="" disabled>Select a department...</option>
+                      {departments.map(dept => (
+                        <option key={dept.id} value={dept.name}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="form-group">
                     <label>Subject / Specialization</label>
