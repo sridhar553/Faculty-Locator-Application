@@ -60,10 +60,10 @@ export default function DepartmentFaculty() {
     : faculty;
 
   return (
-    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "24px 20px", fontFamily: "'Inter', sans-serif" }}>
+    <div className="dept-faculty-wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "24px 20px", fontFamily: "'Inter', sans-serif" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px" }}>
+      <div className="dept-faculty-header" style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px" }}>
         <button
           onClick={() => navigate("/departments")}
           style={{
@@ -127,7 +127,7 @@ export default function DepartmentFaculty() {
       )}
 
       {/* Faculty Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px" }}>
+      <div className="faculty-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px" }}>
         {displayed.map(f => {
           const status = f.liveStatus?.availability || "Offline";
           const location = f.liveStatus?.location || f.timetableLocation || "—";

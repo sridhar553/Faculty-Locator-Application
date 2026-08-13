@@ -28,7 +28,7 @@ export default function StudentSearch() {
   }
 
   return (
-    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px", fontFamily: "'Inter', sans-serif" }}>
+    <div className="student-search-wrap" style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px", fontFamily: "'Inter', sans-serif" }}>
       
       {/* Page Header */}
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
@@ -41,7 +41,7 @@ export default function StudentSearch() {
       </div>
 
       {/* Search Bar */}
-      <div style={{
+      <div className="dept-search-bar" style={{
         display: "flex", alignItems: "center",
         background: "#fff", borderRadius: "50px",
         border: "1px solid #e2e8f0",
@@ -68,7 +68,7 @@ export default function StudentSearch() {
       </div>
 
       {/* Department Cards Grid */}
-      <div style={{
+      <div className="dept-card-grid" style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
         gap: "20px"

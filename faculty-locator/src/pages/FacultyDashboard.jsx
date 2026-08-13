@@ -356,7 +356,7 @@ export default function FacultyDashboard() {
   );
 
   return (
-    <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 20px', fontFamily: "'Inter', sans-serif" }}>
+    <div className="faculty-dashboard-wrap">
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {examMode && (
@@ -366,12 +366,12 @@ export default function FacultyDashboard() {
       )}
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="fd-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+        <div className="fd-header-info" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {profileForm.photo ? (
-            <img src={profileForm.photo} alt="avatar" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e7ff' }} />
+            <img src={profileForm.photo} alt="avatar" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e7ff', flexShrink: 0 }} />
           ) : (
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '1.4rem' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '1.4rem', flexShrink: 0 }}>
               {faculty.name.charAt(0)}
             </div>
           )}
@@ -382,14 +382,15 @@ export default function FacultyDashboard() {
         </div>
         <button
           onClick={handleLogout}
-          style={{ background: '#fff', border: '1px solid #cbd5e1', color: '#475569', padding: '10px 20px', borderRadius: '50px', cursor: 'pointer', fontWeight: '600' }}
+          className="fd-signout-btn"
+          style={{ background: '#fff', border: '1px solid #cbd5e1', color: '#475569', padding: '10px 20px', borderRadius: '50px', cursor: 'pointer', fontWeight: '600', flexShrink: 0 }}
         >
           Sign Out
         </button>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '28px', flexWrap: 'wrap' }}>
+      <div className="fd-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '28px', flexWrap: 'wrap' }}>
         {tabBtn("broadcast", "Student Broadcast", "📡")}
         {tabBtn("attendance", "Daily Attendance", "✅")}
         {tabBtn("profile", "My Profile", "👤")}
@@ -397,7 +398,7 @@ export default function FacultyDashboard() {
 
       {/* TAB: BROADCAST */}
       {activeTab === "broadcast" && (
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
+        <div className="fd-tab-panel" style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Availability</label>
             <div style={{ position: 'relative' }}>
@@ -450,7 +451,7 @@ export default function FacultyDashboard() {
 
       {/* TAB: ATTENDANCE */}
       {activeTab === "attendance" && (
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
+        <div className="fd-tab-panel" style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
           {/* Geofence Status */}
           <div style={{ background: distanceFromCollege === null ? '#f8fafc' : isWithinRange ? '#f0fdf4' : '#fef2f2', border: `1px solid ${distanceFromCollege === null ? '#e2e8f0' : isWithinRange ? '#bbf7d0' : '#fecaca'}`, padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -485,7 +486,7 @@ export default function FacultyDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+          <div className="fd-action-btns" style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
             <button disabled={!isWithinRange || !hasSignature || isSubmitting} onClick={() => submitAttendance('CHECK_IN')}
               style={{ flex: 1, padding: '14px', borderRadius: '12px', background: (!isWithinRange || !hasSignature) ? '#cbd5e1' : '#10b981', color: 'white', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: (!isWithinRange || !hasSignature) ? 'not-allowed' : 'pointer' }}
             >Check-In</button>
@@ -500,7 +501,7 @@ export default function FacultyDashboard() {
 
       {/* TAB: PROFILE */}
       {activeTab === "profile" && (
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
+        <div className="fd-tab-panel" style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
           {/* Photo Upload */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '28px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
             <div style={{ position: 'relative' }}>
@@ -533,7 +534,7 @@ export default function FacultyDashboard() {
                 style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.95rem', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="fd-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', color: '#475569', fontWeight: '600', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone Number</label>
                 <input type="tel" value={profileForm.phone} onChange={e => setProfileForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="e.g. +91 9876543210"
