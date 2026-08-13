@@ -17,6 +17,11 @@ router.get("/", async (req, res) => {
       subject: f.subject,
       timetableLocation: f.timetableLocation,
       role: f.role,
+      bio: f.bio || "",
+      phone: f.phone || "",
+      qualification: f.qualification || "",
+      experience: f.experience || "",
+      photo: f.photo || "",
       liveStatus: {
         availability: f.liveStatusAvailability,
         location: f.liveStatusLocation,
@@ -229,6 +234,25 @@ router.get("/attendance/all", auth, isAdmin, async (req, res) => {
       
     if (error) throw error;
     res.json(data);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// UPDATE FACULTY PROFILE (Faculty only)
+router.put("/profile", auth, isFaculty, async (req, res) => {
+  try {
+    const { bio, phone, qualification, experience, photo } = req.body;
+    const updateData = {};
+    if (bio !== undefined) updateData.bio = bio;
+    if (phone !== undefined) updateData.phone = phone;
+    if (qualification !== undefined) updateData.qualification = qualification;
+    if (experience !== undefined) updateData.experience = experience;
+    if (photo !== undefined) updateData.photo = photo;
+
+    const { error } = await supabase.from('Faculty').update(updateData).eq('id', req.user.id);
+    if (error) throw error;
+    res.json({ message: "Profile updated successfully" });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -15,6 +15,9 @@ export default function FacultyDashboard() {
   const [location, setLocation] = useState("");
   const [examMode, setExamMode] = useState(false);
   const [campusLocations, setCampusLocations] = useState([]);
+  const [activeTab, setActiveTab] = useState("broadcast");
+  const [profileForm, setProfileForm] = useState({ bio: "", phone: "", qualification: "", experience: "", photo: "" });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   
   // Geolocation & Attendance State
   const [isLocating, setIsLocating] = useState(false);
@@ -48,6 +51,13 @@ export default function FacultyDashboard() {
           setFaculty(f);
           setAvailability(f.liveStatus?.availability || "Available");
           setLocation(f.liveStatus?.location || "");
+          setProfileForm({
+            bio: f.bio || "",
+            phone: f.phone || "",
+            qualification: f.qualification || "",
+            experience: f.experience || "",
+            photo: f.photo || ""
+          });
         }
       })
       .catch(err => console.error(err));
@@ -287,6 +297,34 @@ export default function FacultyDashboard() {
     navigate("/login");
   }
 
+  function handlePhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error("Photo must be under 2MB"); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => setProfileForm(prev => ({ ...prev, photo: ev.target.result }));
+    reader.readAsDataURL(file);
+  }
+
+  function saveProfile() {
+    setIsSavingProfile(true);
+    fetch("/api/faculty/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${user.token}` },
+      body: JSON.stringify(profileForm)
+    })
+      .then(async res => {
+        setIsSavingProfile(false);
+        if (res.ok) {
+          toast.success("Profile saved successfully!");
+        } else {
+          const d = await res.json();
+          toast.error(d.error || "Failed to save profile");
+        }
+      })
+      .catch(() => { setIsSavingProfile(false); toast.error("Network error"); });
+  }
+
   if (!faculty) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc' }}>
       <div className="loader" style={{ width: '40px', height: '40px', border: '4px solid #cbd5e1', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -296,277 +334,165 @@ export default function FacultyDashboard() {
 
   const isWithinRange = distanceFromCollege !== null && distanceFromCollege <= maxRadius;
 
+  const tabBtn = (id, label, icon) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      style={{
+        padding: '10px 22px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '600',
+        fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s',
+        background: activeTab === id ? '#4f46e5' : '#f1f5f9',
+        color: activeTab === id ? '#fff' : '#475569',
+        boxShadow: activeTab === id ? '0 4px 12px rgba(79,70,229,0.3)' : 'none'
+      }}
+    >
+      <span>{icon}</span> {label}
+    </button>
+  );
+
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 20px', fontFamily: "'Inter', sans-serif" }}>
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
       {examMode && (
-        <div style={{ background: "linear-gradient(to right, #ef4444, #f97316)", color: "white", padding: "16px", borderRadius: "12px", marginBottom: "24px", fontWeight: "600", display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
-          Exam Mode is Active. Strict location tracking is enforced.
+        <div style={{ background: "linear-gradient(to right, #ef4444, #f97316)", color: "white", padding: "14px 20px", borderRadius: "12px", marginBottom: "20px", fontWeight: "600", display: 'flex', alignItems: 'center', gap: '10px' }}>
+          ⚠️ Exam Mode is Active. Strict location tracking is enforced.
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <div>
-          <h1 style={{ margin: '0 0 8px 0', color: '#0f172a', fontSize: '2rem' }}>Welcome, {faculty.name.split(' ')[0]}</h1>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem' }}>{faculty.department} | {faculty.subject}</p>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {profileForm.photo ? (
+            <img src={profileForm.photo} alt="avatar" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e7ff' }} />
+          ) : (
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '1.4rem' }}>
+              {faculty.name.charAt(0)}
+            </div>
+          )}
+          <div>
+            <h1 style={{ margin: '0 0 4px 0', color: '#0f172a', fontSize: '1.6rem' }}>Welcome, {faculty.name.split(' ')[0]}</h1>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>{faculty.department} | {faculty.subject}</p>
+          </div>
         </div>
-        <button 
+        <button
           onClick={handleLogout}
-          style={{ background: '#fff', border: '1px solid #cbd5e1', color: '#475569', padding: '10px 20px', borderRadius: '50px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-          onMouseOver={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#94a3b8'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+          style={{ background: '#fff', border: '1px solid #cbd5e1', color: '#475569', padding: '10px 20px', borderRadius: '50px', cursor: 'pointer', fontWeight: '600' }}
         >
           Sign Out
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-        
-        {/* SECTION 1: LIVE STATUS */}
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)', border: '1px solid #f1f5f9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ background: '#e0e7ff', padding: '10px', borderRadius: '12px', color: '#4f46e5' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </div>
-            <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>Student Broadcast</h2>
-          </div>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        {tabBtn("broadcast", "Student Broadcast", "📡")}
+        {tabBtn("attendance", "Daily Attendance", "✅")}
+        {tabBtn("profile", "My Profile", "👤")}
+      </div>
 
+      {/* TAB: BROADCAST */}
+      {activeTab === "broadcast" && (
+        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#475569', fontWeight: '500', fontSize: '0.9rem' }}>Current Availability</label>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Availability</label>
             <div style={{ position: 'relative' }}>
               <select
                 value={availability}
                 onChange={e => setAvailability(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 16px',
-                  borderRadius: '12px',
-                  border: `2px solid ${availability === 'Available' ? '#22c55e' : availability === 'Busy' ? '#eab308' : '#ef4444'}`,
-                  background: `${availability === 'Available' ? '#f0fdf4' : availability === 'Busy' ? '#fefce8' : '#fef2f2'}`,
-                  color: '#1e293b',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  appearance: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s'
-                }}
+                style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: `2px solid ${availability === 'Available' ? '#22c55e' : availability === 'Busy' ? '#eab308' : '#ef4444'}`, background: `${availability === 'Available' ? '#f0fdf4' : availability === 'Busy' ? '#fefce8' : '#fef2f2'}`, color: '#1e293b', fontSize: '1rem', fontWeight: '600', appearance: 'none', cursor: 'pointer', transition: 'all 0.3s', boxSizing: 'border-box' }}
               >
                 <option value="Available">🟢 Available to Students</option>
                 <option value="Busy">🟡 Busy / In Class</option>
                 <option value="Offline">🔴 Offline / Do Not Disturb</option>
               </select>
-              <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#64748b' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
             </div>
           </div>
 
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
-              <label style={{ color: '#475569', fontWeight: '500', fontSize: '0.9rem' }}>Live Location</label>
-              <button 
-                onClick={fetchGPSLocation}
-                disabled={isLocating}
-                style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                {isLocating ? "Fetching..." : "Auto-Locate"}
+              <label style={{ color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Location</label>
+              <button onClick={fetchGPSLocation} disabled={isLocating} style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer' }}>
+                🌐 {isLocating ? "Fetching..." : "Auto-Locate"}
               </button>
             </div>
             <select
               value={location}
               onChange={e => setLocation(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '14px 16px',
-                borderRadius: '12px',
-                border: '1px solid #cbd5e1',
-                background: '#f8fafc',
-                fontSize: '1rem',
-                color: '#1e293b',
-                boxSizing: 'border-box',
-                appearance: 'none',
-                cursor: 'pointer'
-              }}
+              style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1rem', color: '#1e293b', boxSizing: 'border-box', appearance: 'none', cursor: 'pointer' }}
             >
               <option value="">-- Select a Location --</option>
               {campusLocations.map(loc => {
                 const label = `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}`;
                 return <option key={loc.id} value={label}>{label}</option>;
               })}
-              {/* Always allow manual GPS entry */}
               {location && !campusLocations.some(loc => `${loc.block}, ${loc.floor}, Cabin ${loc.cabinNo}` === location) && (
                 <option value={location}>{location}</option>
               )}
             </select>
-            <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>Default: {faculty.timetableLocation}</p>
+            <p style={{ margin: '6px 0 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Default: {faculty.timetableLocation}</p>
           </div>
 
-          <button 
+          <button
             onClick={updateStatus}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: '12px',
-              background: '#4f46e5',
-              color: 'white',
-              border: 'none',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-              boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#4338ca'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#4f46e5'}
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#4f46e5', color: 'white', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(79,70,229,0.2)' }}
           >
             Broadcast Update
           </button>
         </div>
+      )}
 
-        {/* SECTION 2: GEOFENCED ATTENDANCE */}
-        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)', border: '1px solid #f1f5f9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ background: '#fef3c7', padding: '10px', borderRadius: '12px', color: '#d97706' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
-            </div>
-            <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>Daily Attendance</h2>
-          </div>
-
-          {/* Distance Indicator */}
-          <div style={{ 
-            background: distanceFromCollege === null ? '#f8fafc' : isWithinRange ? '#f0fdf4' : '#fef2f2', 
-            border: `1px solid ${distanceFromCollege === null ? '#e2e8f0' : isWithinRange ? '#bbf7d0' : '#fecaca'}`,
-            padding: '16px', 
-            borderRadius: '12px', 
-            marginBottom: '20px'
-          }}>
-            <p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Geofence Status</p>
+      {/* TAB: ATTENDANCE */}
+      {activeTab === "attendance" && (
+        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
+          {/* Geofence Status */}
+          <div style={{ background: distanceFromCollege === null ? '#f8fafc' : isWithinRange ? '#f0fdf4' : '#fef2f2', border: `1px solid ${distanceFromCollege === null ? '#e2e8f0' : isWithinRange ? '#bbf7d0' : '#fecaca'}`, padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
+            <p style={{ margin: '0 0 4px 0', fontSize: '0.78rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Geofence Status</p>
             {distanceFromCollege === null ? (
-              <p style={{ margin: 0, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94a3b8' }}></span>
-                Waiting for GPS location...
-              </p>
+              <p style={{ margin: 0, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94a3b8' }}></span> Waiting for GPS location...</p>
             ) : isWithinRange ? (
-              <p style={{ margin: 0, color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }}></span>
-                Inside Campus ({distanceFromCollege}m)
-              </p>
+              <p style={{ margin: 0, color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }}></span> Inside Campus ({distanceFromCollege}m)</p>
             ) : (
-              <p style={{ margin: 0, color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></span>
-                Too Far ({distanceFromCollege}m) - Check-in Locked
-              </p>
+              <p style={{ margin: 0, color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></span> Too Far ({distanceFromCollege}m) - Check-in Locked</p>
             )}
           </div>
 
           {/* Digital Signature */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
-              <label style={{ color: '#475569', fontWeight: '500', fontSize: '0.9rem' }}>Digital Signature Required</label>
-              <button 
-                onClick={clearSignature}
-                style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}
-              >
-                Clear
-              </button>
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label style={{ color: '#475569', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Digital Signature Required</label>
+              <button onClick={clearSignature} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' }}>Clear</button>
             </div>
-            
-            <div style={{ 
-              position: 'relative', 
-              borderRadius: '12px', 
-              border: '2px dashed #cbd5e1', 
-              background: '#f8fafc',
-              overflow: 'hidden',
-              opacity: isWithinRange ? 1 : 0.5,
-              pointerEvents: isWithinRange ? 'auto' : 'none',
-              transition: 'all 0.3s'
-            }}>
+            <div style={{ position: 'relative', borderRadius: '12px', border: '2px dashed #cbd5e1', background: '#f8fafc', overflow: 'hidden', opacity: isWithinRange ? 1 : 0.5, pointerEvents: isWithinRange ? 'auto' : 'none' }}>
               {!hasSignature && (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#94a3b8', pointerEvents: 'none', userSelect: 'none' }}>
-                  Sign here
-                </div>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#94a3b8', pointerEvents: 'none' }}>Sign here</div>
               )}
-              <canvas
-                ref={canvasRef}
-                width={400}
-                height={150}
-                style={{ display: 'block', width: '100%', cursor: 'crosshair' }}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
+              <canvas ref={canvasRef} width={400} height={150} style={{ display: 'block', width: '100%', cursor: 'crosshair' }}
+                onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}
               />
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              disabled={!isWithinRange || !hasSignature || isSubmitting}
-              onClick={() => submitAttendance('CHECK_IN')}
-              style={{
-                flex: 1,
-                padding: '14px',
-                borderRadius: '12px',
-                background: (!isWithinRange || !hasSignature) ? '#cbd5e1' : '#10b981',
-                color: 'white',
-                border: 'none',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: (!isWithinRange || !hasSignature) ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Check-In
-            </button>
-            <button
-              disabled={!isWithinRange || !hasSignature || isSubmitting}
-              onClick={() => submitAttendance('CHECK_OUT')}
-              style={{
-                flex: 1,
-                padding: '14px',
-                borderRadius: '12px',
-                background: (!isWithinRange || !hasSignature) ? '#cbd5e1' : '#f59e0b',
-                color: 'white',
-                border: 'none',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: (!isWithinRange || !hasSignature) ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Check-Out
-            </button>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+            <button disabled={!isWithinRange || !hasSignature || isSubmitting} onClick={() => submitAttendance('CHECK_IN')}
+              style={{ flex: 1, padding: '14px', borderRadius: '12px', background: (!isWithinRange || !hasSignature) ? '#cbd5e1' : '#10b981', color: 'white', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: (!isWithinRange || !hasSignature) ? 'not-allowed' : 'pointer' }}
+            >Check-In</button>
+            <button disabled={!isWithinRange || !hasSignature || isSubmitting} onClick={() => submitAttendance('CHECK_OUT')}
+              style={{ flex: 1, padding: '14px', borderRadius: '12px', background: (!isWithinRange || !hasSignature) ? '#cbd5e1' : '#f59e0b', color: 'white', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: (!isWithinRange || !hasSignature) ? 'not-allowed' : 'pointer' }}
+            >Check-Out</button>
           </div>
-          
-          <p style={{ margin: '12px 0 0 0', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-            Administrators monitor all GPS-verified check-ins to prevent proxy attendance.
-          </p>
-          
-          {/* Today's Log */}
+          <p style={{ margin: '0 0 24px 0', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>Administrators monitor all GPS-verified check-ins to prevent proxy attendance.</p>
+
           {myLogs.length > 0 && (
-            <div style={{ marginTop: '30px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
-              <h4 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Today's Log (Auto-detected)
-              </h4>
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+              <h4 style={{ margin: '0 0 14px 0', color: '#1e293b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>🕐 Today's Log (Auto-detected)</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {myLogs.map((log) => {
                   const timeStr = new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                  const dateStr = new Date(log.date).toLocaleDateString();
                   const isCheckIn = log.type === 'CHECK_IN';
                   return (
                     <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', borderLeft: `4px solid ${isCheckIn ? '#10b981' : '#f59e0b'}` }}>
-                      <div>
-                        <p style={{ margin: '0 0 4px 0', fontWeight: '600', color: '#334155', fontSize: '0.9rem' }}>{isCheckIn ? 'Morning / Check-In' : 'Evening / Check-Out'}</p>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>{dateStr} • GPS: {log.gpsLat?.toFixed(4)}, {log.gpsLng?.toFixed(4)}</p>
-                      </div>
-                      <div style={{ background: '#e0e7ff', color: '#4338ca', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                        {timeStr}
-                      </div>
+                      <p style={{ margin: 0, fontWeight: '600', color: '#334155', fontSize: '0.9rem' }}>{isCheckIn ? 'Morning / Check-In' : 'Evening / Check-Out'}</p>
+                      <div style={{ background: '#e0e7ff', color: '#4338ca', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}>{timeStr}</div>
                     </div>
                   );
                 })}
@@ -574,8 +500,74 @@ export default function FacultyDashboard() {
             </div>
           )}
         </div>
+      )}
 
-      </div>
+      {/* TAB: PROFILE */}
+      {activeTab === "profile" && (
+        <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9', animation: 'fadeIn 0.3s ease' }}>
+          {/* Photo Upload */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '28px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
+            <div style={{ position: 'relative' }}>
+              {profileForm.photo ? (
+                <img src={profileForm.photo} alt="profile" style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #e0e7ff' }} />
+              ) : (
+                <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '2rem' }}>
+                  {faculty.name.charAt(0)}
+                </div>
+              )}
+              <label htmlFor="photo-upload" style={{ position: 'absolute', bottom: 0, right: 0, background: '#4f46e5', color: '#fff', width: '26px', height: '26px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.75rem', border: '2px solid #fff' }}>✏️</label>
+              <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+            </div>
+            <div>
+              <h3 style={{ margin: '0 0 4px 0', color: '#0f172a' }}>{faculty.name}</h3>
+              <p style={{ margin: '0 0 4px 0', color: '#64748b', fontSize: '0.9rem' }}>{faculty.department} · {faculty.subject}</p>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.78rem' }}>ID: {faculty.id}</p>
+            </div>
+          </div>
+
+          {/* Professional Details */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#475569', fontWeight: '600', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Short Bio</label>
+              <textarea
+                value={profileForm.bio}
+                onChange={e => setProfileForm(prev => ({ ...prev, bio: e.target.value }))}
+                placeholder="Write a short introduction about yourself..."
+                rows={3}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.95rem', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#475569', fontWeight: '600', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone Number</label>
+                <input type="tel" value={profileForm.phone} onChange={e => setProfileForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="e.g. +91 9876543210"
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#475569', fontWeight: '600', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Years of Experience</label>
+                <input type="number" value={profileForm.experience} onChange={e => setProfileForm(prev => ({ ...prev, experience: e.target.value }))} placeholder="e.g. 8"
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#475569', fontWeight: '600', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Highest Qualification</label>
+              <input type="text" value={profileForm.qualification} onChange={e => setProfileForm(prev => ({ ...prev, qualification: e.target.value }))} placeholder="e.g. Ph.D. in Computer Science"
+                style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+
+          <button
+            onClick={saveProfile}
+            disabled={isSavingProfile}
+            style={{ width: '100%', marginTop: '24px', padding: '14px', borderRadius: '12px', background: isSavingProfile ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: isSavingProfile ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}
+          >
+            {isSavingProfile ? "Saving..." : "💾 Save Profile"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
+
+
