@@ -275,7 +275,9 @@ export default function FacultyDashboard() {
       .then(async res => {
         setIsSubmitting(false);
         if (res.ok) {
-          toast.success(`Successfully ${type === 'CHECK_IN' ? 'Checked In' : 'Checked Out'}!`);
+          const actionText = type === 'CHECK_IN' ? 'Checked In' : 'Checked Out';
+          const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          toast.success(`${actionText} at ${timeStr}`, { duration: 3000 });
           clearSignature();
           loadMyLogs();
         } else {
@@ -493,23 +495,6 @@ export default function FacultyDashboard() {
           </div>
           <p style={{ margin: '0 0 24px 0', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>Administrators monitor all GPS-verified check-ins to prevent proxy attendance.</p>
 
-          {myLogs.length > 0 && (
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
-              <h4 style={{ margin: '0 0 14px 0', color: '#1e293b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>🕐 Today's Log (Auto-detected)</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {myLogs.map((log) => {
-                  const timeStr = new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                  const isCheckIn = log.type === 'CHECK_IN';
-                  return (
-                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', borderLeft: `4px solid ${isCheckIn ? '#10b981' : '#f59e0b'}` }}>
-                      <p style={{ margin: 0, fontWeight: '600', color: '#334155', fontSize: '0.9rem' }}>{isCheckIn ? 'Morning / Check-In' : 'Evening / Check-Out'}</p>
-                      <div style={{ background: '#e0e7ff', color: '#4338ca', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}>{timeStr}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       )}
 

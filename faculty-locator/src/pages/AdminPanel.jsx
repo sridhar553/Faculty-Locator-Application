@@ -482,6 +482,35 @@ export default function AdminPanel() {
       .catch(err => console.error(err));
   }
 
+  function downloadCSV() {
+    if (attendanceLogs.length === 0) {
+      toast.error("No attendance data to download.");
+      return;
+    }
+    const headers = ["Date", "Time", "Faculty ID", "Name", "Department", "Type", "GPS Lat", "GPS Lng"];
+    const rows = attendanceLogs.map(log => {
+      const d = new Date(log.date);
+      return [
+        d.toLocaleDateString(),
+        d.toLocaleTimeString(),
+        log.facultyId,
+        log.Faculty?.name || "Unknown",
+        log.Faculty?.department || "Unknown",
+        log.type,
+        log.gpsLat || "",
+        log.gpsLng || ""
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+    });
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Attendance_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   function handleLogout() {
     logout();
     navigate("/admin-login");
@@ -1077,12 +1106,20 @@ export default function AdminPanel() {
                   <h3 style={{ margin: 0, color: '#1e293b', letterSpacing: '1px', textTransform: 'uppercase' }}>
                     {monthName}
                   </h3>
-                  <button 
-                    onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
-                    style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
-                    Next ▶
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={downloadCSV}
+                      style={{ background: '#10b981', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      📥 Download CSV
+                    </button>
+                    <button 
+                      onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
+                      style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      Next ▶
+                    </button>
+                  </div>
                 </div>
 
                 <div className="table-responsive" style={{ maxHeight: '600px', overflowY: 'auto' }}>
