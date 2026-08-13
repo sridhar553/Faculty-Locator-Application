@@ -20,6 +20,7 @@ export default function FacultyDashboard() {
   const [gpsCoords, setGpsCoords] = useState(null);
   const [distanceFromCollege, setDistanceFromCollege] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [myLogs, setMyLogs] = useState([]);
 
   // Dynamic Geofence Config from Admin Panel
   const [collegeLat, setCollegeLat] = useState(null);
@@ -65,7 +66,20 @@ export default function FacultyDashboard() {
         }
       })
       .catch(err => console.error(err));
+
+    loadMyLogs();
   }, [user.id]);
+
+  function loadMyLogs() {
+    fetch("/api/faculty/attendance/me", {
+      headers: { "Authorization": `Bearer ${user.token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMyLogs(data);
+      })
+      .catch(err => console.error(err));
+  }
 
   useEffect(() => {
     if (!socket) return;
@@ -224,6 +238,7 @@ export default function FacultyDashboard() {
         if (res.ok) {
           toast.success(`Successfully ${type === 'CHECK_IN' ? 'Checked In' : 'Checked Out'}!`);
           clearSignature();
+          loadMyLogs();
         } else {
           toast.error("Failed to record attendance");
         }
@@ -488,6 +503,34 @@ export default function FacultyDashboard() {
           <p style={{ margin: '12px 0 0 0', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
             Administrators monitor all GPS-verified check-ins to prevent proxy attendance.
           </p>
+          
+          {/* Today's Log */}
+          {myLogs.length > 0 && (
+            <div style={{ marginTop: '30px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+              <h4 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Today's Log (Auto-detected)
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {myLogs.map((log) => {
+                  const timeStr = new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                  const dateStr = new Date(log.date).toLocaleDateString();
+                  const isCheckIn = log.type === 'CHECK_IN';
+                  return (
+                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', borderLeft: `4px solid ${isCheckIn ? '#10b981' : '#f59e0b'}` }}>
+                      <div>
+                        <p style={{ margin: '0 0 4px 0', fontWeight: '600', color: '#334155', fontSize: '0.9rem' }}>{isCheckIn ? 'Morning / Check-In' : 'Evening / Check-Out'}</p>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>{dateStr} • GPS: {log.gpsLat?.toFixed(4)}, {log.gpsLng?.toFixed(4)}</p>
+                      </div>
+                      <div style={{ background: '#e0e7ff', color: '#4338ca', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                        {timeStr}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

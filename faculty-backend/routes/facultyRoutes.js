@@ -181,21 +181,54 @@ router.delete("/:id", auth, isAdmin, async (req, res) => {
   }
 });
 
-// RECORD ATTENDANCE (Faculty only)
-// Mock route for testing frontend without DB changes
+// RECORD ATTENDANCE
 router.post("/attendance", auth, isFaculty, async (req, res) => {
   try {
     const { type, facultyId, gps, signature } = req.body;
     
-    // In the future, insert into Supabase here:
-    // await supabase.from('Attendance').insert([{ ... }])
+    const { data, error } = await supabase.from('Attendance').insert([{
+      facultyId,
+      type,
+      signature,
+      gpsLat: gps?.lat,
+      gpsLng: gps?.lng
+    }]).select().single();
     
-    console.log(`[ATTENDANCE MOCK] Faculty ${facultyId} did ${type} at coords ${gps?.lat}, ${gps?.lng}`);
+    if (error) throw error;
     
-    // Send socket update if desired
-    // req.io.emit("attendanceUpdate", { ... })
+    res.json({ message: "Attendance recorded successfully", data });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
-    res.json({ message: "Attendance recorded successfully" });
+// GET MY ATTENDANCE (Faculty)
+router.get("/attendance/me", auth, isFaculty, async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('Attendance')
+      .select('*')
+      .eq('facultyId', req.user.id)
+      .order('date', { ascending: false });
+    
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET ALL ATTENDANCE (Admin)
+router.get("/attendance/all", auth, isAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('Attendance')
+      .select(`
+        *,
+        Faculty ( name, department )
+      `)
+      .order('date', { ascending: false });
+      
+    if (error) throw error;
+    res.json(data);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
